@@ -2,6 +2,52 @@ require 'spec_helper'
 
 describe Hawk::Crypto do
 
+  let(:algorithm) { "sha256" }
+  let(:credentials) do
+    {
+      :id => '123456',
+      :key => '2983d45yun89q',
+      :algorithm => algorithm
+    }
+  end
+
+  describe "#hash" do
+    let(:hashing_method) { "hash" }
+
+    shared_examples "a payload hashing method" do
+      it "returns valid base64 encoded hash of payload" do
+        expect(described_class.send(hashing_method, input)).to eql(expected_output)
+      end
+    end
+
+    let(:input) do
+      {
+        :credentials => credentials,
+        :ts => 1353809207,
+        :nonce => 'Ygvqdz',
+        :method => 'POST',
+        :path => '/somewhere/over/the/rainbow',
+        :host => 'example.net',
+        :port => 80,
+        :payload => 'something to write about',
+        :ext => 'Bazinga!'
+      }
+    end
+
+    context "when using sha1 algorithm" do
+      let(:expected_output) { "bsvY3IfUllw6V5rvk4tStEvpBhE=" }
+      let(:algorithm) { "sha1" }
+
+      it_behaves_like "a payload hashing method"
+    end
+
+    context "when using sha256 algorithm" do
+      let(:expected_output) { "LjRmtkSKTW0ObTUyZ7N+vjClKd//KTTdfhF1M4XCuEM=" }
+
+      it_behaves_like "a payload hashing method"
+    end
+  end
+
   describe "#normalized_string" do
     let(:normalization_method) { "normalized_string" }
 

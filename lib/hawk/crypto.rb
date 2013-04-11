@@ -2,6 +2,17 @@ module Hawk
   module Crypto
     extend self
 
+    def hash(options)
+      parts = []
+
+      parts << "hawk.1.payload"
+      parts << options[:content_type]
+      parts << options[:payload].to_s
+      parts << nil # trailing newline
+
+      Digest.const_get(options[:credentials][:algorithm].upcase).base64digest(parts.join("\n"))
+    end
+
     def normalized_string(options)
       parts = []
 
