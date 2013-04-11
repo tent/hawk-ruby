@@ -48,14 +48,42 @@ describe Hawk::Crypto do
     end
   end
 
+  shared_examples "a mac digest method" do
+    it "returns valid base64 encoded hmac" do
+      expect(described_class.send(mac_digest_method, input)).to eql(expected_output)
+    end
+  end
+
+  describe "#bewit" do
+    let(:mac_digest_method) { "bewit" }
+
+    context "when using sha256 algorithm" do
+      let(:input) do
+        {
+          :credentials => credentials,
+          :method => 'GET',
+          :path => '/resource/4?a=1&b=2',
+          :host => 'example.com',
+          :port => 80,
+          :ext => 'some-app-data',
+          :ttl => 60 * 60 * 24 * 365 * 100
+        }
+      end
+
+      let(:expected_output) {
+        "MTIzNDU2XDQ1MTkzMTE0NThcYkkwanFlS1prUHE0V1hRMmkxK0NrQ2lOanZEc3BSVkNGajlmbElqMXphWT1cc29tZS1hcHAtZGF0YQ"
+      }
+
+      before do
+        Time.stubs(:now).returns(Time.at(1365711458))
+      end
+
+      it_behaves_like "a mac digest method"
+    end
+  end
+
   describe "#mac" do
     let(:mac_digest_method) { "mac" }
-
-    shared_examples "a mac digest method" do
-      it "returns valid base64 encoded hmac" do
-        expect(described_class.send(mac_digest_method, input)).to eql(expected_output)
-      end
-    end
 
     let(:input) do
       {

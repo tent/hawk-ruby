@@ -19,7 +19,7 @@ module Hawk
     def normalized_string(options)
       parts = []
 
-      parts << "hawk.1.header"
+      parts << "hawk.1.#{options[:type] || 'header'}"
       parts << options[:ts]
       parts << options[:nonce]
       parts << options[:method].to_s.upcase
@@ -44,7 +44,22 @@ module Hawk
           options[:credentials][:key],
           normalized_string(options)
         )
-      ).sub("\n", '')
+      ).chomp
+    end
+
+    def bewit(options)
+      options[:ts] = Time.now.to_i + options[:ttl].to_i
+
+      _mac = mac(options.merge(:type => 'bewit'))
+
+      parts = []
+
+      parts << options[:credentials][:id]
+      parts << options[:ts]
+      parts << _mac
+      parts << options[:ext]
+
+      Base64.urlsafe_encode64(parts.join("\\")).chomp.sub(/=+\Z/, '')
     end
 
     def openssl_digest(algorithm)
