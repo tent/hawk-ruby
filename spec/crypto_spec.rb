@@ -48,6 +48,43 @@ describe Hawk::Crypto do
     end
   end
 
+  describe "#mac" do
+    let(:mac_digest_method) { "mac" }
+
+    shared_examples "a mac digest method" do
+      it "returns valid base64 encoded hmac" do
+        expect(described_class.send(mac_digest_method, input)).to eql(expected_output)
+      end
+    end
+
+    let(:input) do
+      {
+        :credentials => credentials,
+        :ts => 1353809207,
+        :nonce => 'Ygvqdz',
+        :method => 'POST',
+        :path => '/somewhere/over/the/rainbow',
+        :host => 'example.net',
+        :port => 80,
+        :payload => 'something to write about',
+        :ext => 'Bazinga!'
+      }
+    end
+
+    context "when using sha1 algorithm" do
+      let(:expected_output) { "qbf1ZPG/r/e06F4ht+T77LXi5vw=" }
+      let(:algorithm) { "sha1" }
+
+      it_behaves_like "a mac digest method"
+    end
+
+    context "when using sha256 algorithm" do
+      let(:expected_output) { "dh5kEkotNusOuHPolRYUhvy2vlhJybTC2pqBdUQk5z0=" }
+
+      it_behaves_like "a mac digest method"
+    end
+  end
+
   describe "#normalized_string" do
     let(:normalization_method) { "normalized_string" }
 

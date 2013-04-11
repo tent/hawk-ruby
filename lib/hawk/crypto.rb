@@ -1,3 +1,6 @@
+require 'base64'
+require 'openssl'
+
 module Hawk
   module Crypto
     extend self
@@ -28,6 +31,24 @@ module Hawk
       parts << nil # trailing newline
 
       parts.join("\n")
+    end
+
+    def mac(options)
+      if !options[:hash] && options.has_key?(:payload)
+        options[:hash] = hash(options)
+      end
+
+      Base64.encode64(
+        OpenSSL::HMAC.digest(
+          openssl_digest(options[:credentials][:algorithm]).new,
+          options[:credentials][:key],
+          normalized_string(options)
+        )
+      ).sub("\n", '')
+    end
+
+    def openssl_digest(algorithm)
+      OpenSSL::Digest.const_get(algorithm.upcase)
     end
   end
 end
