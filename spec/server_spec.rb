@@ -214,6 +214,18 @@ describe Hawk::Server do
             expect(actual.message).to_not eql(nil)
           end
         end
+
+        context "when no credentials_lookup given" do
+          before do
+            input.delete(:credentials_lookup)
+          end
+
+          it "returns error object" do
+            actual = described_class.authenticate(authorization_header, input)
+            expect(actual).to be_a(Hawk::Server::AuthenticationFailure)
+            expect(actual.key).to eql(:id)
+          end
+        end
       end
     end
 

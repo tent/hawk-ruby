@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'support/shared_examples/authorization_header'
 
 describe Hawk::Client do
 
@@ -52,42 +53,8 @@ describe Hawk::Client do
   end
 
   describe ".build_authorization_header" do
-    shared_examples "an authorization header builder" do
-      returns_valid_authorization_header = proc do
-        it "returns valid authorization header" do
-          actual = described_class.build_authorization_header(input)
-
-          expected_output_parts.each do |expected_part|
-            matcher = Regexp === expected_part ? expected_part : Regexp.new(Regexp.escape(expected_part))
-            expect(actual).to match(matcher)
-          end
-
-          expect(actual).to eql(expected_output)
-        end
-      end
-
-      context "with full options", &returns_valid_authorization_header
-
-      context "without ext" do
-        before do
-          input.delete(:ext)
-        end
-        context '', &returns_valid_authorization_header
-      end
-
-      context "without payload" do
-        before do
-          input.delete(:payload)
-        end
-        context '', &returns_valid_authorization_header
-      end
-
-      context "without ts" do
-        before do
-          input.delete(:ts)
-        end
-        context '', &returns_valid_authorization_header
-      end
+    shared_examples "an authorization request header builder" do
+      it_behaves_like "an authorization header builder"
 
       context "without nonce" do
         let(:nonce) { nil }
@@ -97,72 +64,18 @@ describe Hawk::Client do
           expect(actual).to match(%r{\bnonce="[^"]+"})
         end
       end
-
-      %w( method path host port ).each do |missing_option|
-        context "when missing #{missing_option} option" do
-          before do
-            input.delete(missing_option.to_sym)
-          end
-
-          it "raises MissingOptionError" do
-            expect { described_class.build_authorization_header(input) }.to raise_error(Hawk::Client::MissingOptionError)
-          end
-        end
-      end
-
-      context "with invalid credentials" do
-        context "when missing id" do
-          before do
-            credentials.delete(:id)
-          end
-
-          it "raises InvalidCredentialsError" do
-            expect { described_class.build_authorization_header(input) }.to raise_error(Hawk::Client::InvalidCredentialsError)
-          end
-        end
-
-        context "when missing key" do
-          before do
-            credentials.delete(:key)
-          end
-
-          it "raises InvalidCredentialsError" do
-            expect { described_class.build_authorization_header(input) }.to raise_error(Hawk::Client::InvalidCredentialsError)
-          end
-        end
-
-        context "when missing algorithm" do
-          before do
-            credentials.delete(:algorithm)
-          end
-
-          it "raises InvalidCredentialsError" do
-            expect { described_class.build_authorization_header(input) }.to raise_error(Hawk::Client::InvalidCredentialsError)
-          end
-        end
-
-        context "when invalid algorithm" do
-          before do
-            credentials[:algorithm] = 'foobar'
-          end
-
-          it "raises InvalidAlgorithmError" do
-            expect { described_class.build_authorization_header(input) }.to raise_error(Hawk::Client::InvalidAlgorithmError)
-          end
-        end
-      end
     end
 
     context "when using sha256" do
       let(:algorithm) { "sha256" }
 
-      it_behaves_like "an authorization header builder"
+      it_behaves_like "an authorization request header builder"
     end
 
     context "when using sha1" do
       let(:algorithm) { "sha1" }
 
-      it_behaves_like "an authorization header builder"
+      it_behaves_like "an authorization request header builder"
     end
   end
 
