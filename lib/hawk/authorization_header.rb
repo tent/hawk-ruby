@@ -11,7 +11,18 @@ module Hawk
     InvalidCredentialsError = Class.new(StandardError)
     InvalidAlgorithmError = Class.new(StandardError)
 
-    AuthenticationFailure = Struct.new(:key, :message)
+    class AuthenticationFailure
+      attr_reader :key, :message
+      def initialize(key, message, options)
+        @key, @message, @options = key, message, options
+      end
+
+      def header
+        timestamp = Time.now.to_i
+        timestamp_mac = Crypto.ts_mac(:ts => timestamp, :credentials => @options[:credentials])
+        %(Hawk ts="#{timestamp}", tsm="#{timestamp_mac}", error="#{message}")
+      end
+    end
 
     def build(options, only=nil)
       options[:ts] ||= Time.now.to_i
@@ -60,20 +71,20 @@ module Hawk
 
       if (now - parts[:ts].to_i > 1000) || (parts[:ts].to_i - now > 1000)
         # Stale timestamp
-        return AuthenticationFailure.new(:ts, "Stale ts")
+        return AuthenticationFailure.new(:ts, "Stale ts", :credentials => options[:credentials])
       end
 
       unless parts[:nonce]
-        return AuthenticationFailure.new(:nonce, "Missing nonce")
+        return AuthenticationFailure.new(:nonce, "Missing nonce", :credentials => options[:credentials])
       end
 
       if options[:nonce_lookup].respond_to?(:call) && options[:nonce_lookup].call(parts[:nonce])
         # Replay
-        return AuthenticationFailure.new(:nonce, "Invalid nonce")
+        return AuthenticationFailure.new(:nonce, "Invalid nonce", :credentials => options[:credentials])
       end
 
       unless options[:credentials_lookup].respond_to?(:call) && (credentials = options[:credentials_lookup].call(parts[:id]))
-        return AuthenticationFailure.new(:id, "Unidentified id")
+        return AuthenticationFailure.new(:id, "Unidentified id", :credentials => options[:credentials])
       end
 
       expected_mac = Crypto.mac(options.merge(
@@ -83,12 +94,12 @@ module Hawk
         :ext => parts[:ext]
       ))
       unless expected_mac == parts[:mac]
-        return AuthenticationFailure.new(:mac, "Invalid mac")
+        return AuthenticationFailure.new(:mac, "Invalid mac", :credentials => options[:credentials])
       end
 
       expected_hash = parts[:hash] ? Crypto.hash(options.merge(:credentials => credentials)) : nil
       if expected_hash && expected_hash != parts[:hash]
-        return AuthenticationFailure.new(:hash, "Invalid hash")
+        return AuthenticationFailure.new(:hash, "Invalid hash", :credentials => options[:credentials])
       end
 
       credentials
