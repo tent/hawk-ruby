@@ -4,7 +4,7 @@ module Hawk
 
     AuthenticationFailure = Struct.new(:key)
 
-    def authenticate(authorization_header, options, &credentials_lookup)
+    def authenticate(authorization_header, options)
       parts = parse_authorization_header(authorization_header)
 
       now = Time.now.to_i
@@ -14,7 +14,12 @@ module Hawk
         return AuthenticationFailure.new(:ts)
       end
 
-      unless credentials_lookup && (credentials = credentials_lookup.call(parts[:id]))
+      if options[:nonce_lookup].respond_to?(:call) && options[:nonce_lookup].call(parts[:nonce])
+        # Replay
+        return AuthenticationFailure.new(:nonce)
+      end
+
+      unless options[:credentials_lookup] && (credentials = options[:credentials_lookup].call(parts[:id]))
         return AuthenticationFailure.new(:id)
       end
 

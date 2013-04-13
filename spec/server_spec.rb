@@ -18,6 +18,10 @@ describe Hawk::Server do
       }
     end
 
+    let(:nonce_lookup) do
+      lambda { |nonce| nil }
+    end
+
     let(:payload) {}
     let(:ext) {}
     let(:timestamp) { Time.now.to_i }
@@ -29,7 +33,9 @@ describe Hawk::Server do
         :path => '/somewhere/over/the/rainbow',
         :host => 'example.net',
         :port => 80,
-        :content_type => 'text/plain'
+        :content_type => 'text/plain',
+        :credentials_lookup => credentials_lookup,
+        :nonce_lookup => nonce_lookup
       }
       _input[:payload] = payload if payload
       _input
@@ -62,14 +68,14 @@ describe Hawk::Server do
     shared_examples "an authorization header authenticator" do
       context "with valid authorization header" do
         it "returns credentials object" do
-          expect(described_class.authenticate(authorization_header, input, &credentials_lookup)).to eql(credentials)
+          expect(described_class.authenticate(authorization_header, input)).to eql(credentials)
         end
 
         context "when hash present" do
           let(:payload) { 'something to write about' }
 
           it "returns credentials object" do
-            expect(described_class.authenticate(authorization_header, input, &credentials_lookup)).to eql(credentials)
+            expect(described_class.authenticate(authorization_header, input)).to eql(credentials)
           end
         end
 
@@ -77,7 +83,7 @@ describe Hawk::Server do
           let(:ext) { 'some random ext' }
 
           it "returns credentials object" do
-            expect(described_class.authenticate(authorization_header, input, &credentials_lookup)).to eql(credentials)
+            expect(described_class.authenticate(authorization_header, input)).to eql(credentials)
           end
         end
       end
@@ -89,7 +95,7 @@ describe Hawk::Server do
           end
 
           it "returns error object" do
-            actual = described_class.authenticate(authorization_header, input, &credentials_lookup)
+            actual = described_class.authenticate(authorization_header, input)
             expect(actual).to be_a(Hawk::Server::AuthenticationFailure)
             expect(actual.key).to eql(:id)
           end
@@ -99,7 +105,7 @@ describe Hawk::Server do
           let(:expected_mac) { 'foobar' }
 
           it "returns error object" do
-            actual = described_class.authenticate(authorization_header, input, &credentials_lookup)
+            actual = described_class.authenticate(authorization_header, input)
             expect(actual).to be_a(Hawk::Server::AuthenticationFailure)
             expect(actual.key).to eql(:mac)
           end
@@ -110,7 +116,7 @@ describe Hawk::Server do
           let(:payload) { 'baz' }
 
           it "returns error object" do
-            actual = described_class.authenticate(authorization_header, input, &credentials_lookup)
+            actual = described_class.authenticate(authorization_header, input)
             expect(actual).to be_a(Hawk::Server::AuthenticationFailure)
             expect(actual.key).to eql(:hash)
           end
@@ -122,7 +128,7 @@ describe Hawk::Server do
           end
 
           it "returns error object" do
-            actual = described_class.authenticate(authorization_header, input, &credentials_lookup)
+            actual = described_class.authenticate(authorization_header, input)
             expect(actual).to be_a(Hawk::Server::AuthenticationFailure)
             expect(actual.key).to eql(:mac)
           end
@@ -135,7 +141,7 @@ describe Hawk::Server do
           end
 
           it "returns error object" do
-            actual = described_class.authenticate(authorization_header, input, &credentials_lookup)
+            actual = described_class.authenticate(authorization_header, input)
             expect(actual).to be_a(Hawk::Server::AuthenticationFailure)
             expect(actual.key).to eql(:mac)
           end
@@ -146,7 +152,7 @@ describe Hawk::Server do
             let(:timestamp) { Time.now.to_i - 1001 }
 
             it "returns error object" do
-              actual = described_class.authenticate(authorization_header, input, &credentials_lookup)
+              actual = described_class.authenticate(authorization_header, input)
               expect(actual).to be_a(Hawk::Server::AuthenticationFailure)
               expect(actual.key).to eql(:ts)
             end
@@ -156,10 +162,24 @@ describe Hawk::Server do
             let(:timestamp) { Time.now.to_i + 1001 }
 
             it "returns error object" do
-              actual = described_class.authenticate(authorization_header, input, &credentials_lookup)
+              actual = described_class.authenticate(authorization_header, input)
               expect(actual).to be_a(Hawk::Server::AuthenticationFailure)
               expect(actual.key).to eql(:ts)
             end
+          end
+        end
+
+        context "when replay" do
+          let(:nonce_lookup) do
+            lambda do |nonce|
+              true
+            end
+          end
+
+          it "returns error object" do
+            actual = described_class.authenticate(authorization_header, input)
+            expect(actual).to be_a(Hawk::Server::AuthenticationFailure)
+            expect(actual.key).to eql(:nonce)
           end
         end
       end
