@@ -14,6 +14,10 @@ module Hawk
         return AuthenticationFailure.new(:ts)
       end
 
+      unless parts[:nonce]
+        return AuthenticationFailure.new(:nonce)
+      end
+
       if options[:nonce_lookup].respond_to?(:call) && options[:nonce_lookup].call(parts[:nonce])
         # Replay
         return AuthenticationFailure.new(:nonce)

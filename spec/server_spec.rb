@@ -58,7 +58,7 @@ describe Hawk::Server do
       parts = []
       parts << %(id="#{credentials[:id]}")
       parts << %(ts="#{timestamp}")
-      parts << %(nonce="#{nonce}")
+      parts << %(nonce="#{nonce}") if nonce
       parts << %(hash="#{expected_hash}") if expected_hash
       parts << %(mac="#{expected_mac}")
       parts << %(ext="#{ext}") if ext
@@ -175,6 +175,28 @@ describe Hawk::Server do
               true
             end
           end
+
+          it "returns error object" do
+            actual = described_class.authenticate(authorization_header, input)
+            expect(actual).to be_a(Hawk::Server::AuthenticationFailure)
+            expect(actual.key).to eql(:nonce)
+          end
+        end
+
+        context "when no credentials_lookup given" do
+          before do
+            input.delete(:credentials_lookup)
+          end
+
+          it "returns error object" do
+            actual = described_class.authenticate(authorization_header, input)
+            expect(actual).to be_a(Hawk::Server::AuthenticationFailure)
+            expect(actual.key).to eql(:id)
+          end
+        end
+
+        context "when nonce missing" do
+          let(:nonce) { nil }
 
           it "returns error object" do
             actual = described_class.authenticate(authorization_header, input)
