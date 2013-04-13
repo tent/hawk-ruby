@@ -1,4 +1,4 @@
-# Hawk
+# Hawk [![Build Status](https://travis-ci.org/tent/hawk-ruby.png)](https://travis-ci.org/tent/hawk-ruby)
 
 Ruby implementation of [Hawk HTTP authentication scheme](https://github.com/hueniverse/hawk).
 
