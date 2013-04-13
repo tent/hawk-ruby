@@ -54,7 +54,7 @@ describe Hawk::Crypto do
     end
   end
 
-  describe "#bewit" do
+  describe ".bewit" do
     let(:mac_digest_method) { "bewit" }
 
     context "when using sha256 algorithm" do
@@ -82,7 +82,7 @@ describe Hawk::Crypto do
     end
   end
 
-  describe "#mac" do
+  describe ".mac" do
     let(:mac_digest_method) { "mac" }
 
     let(:input) do
@@ -126,7 +126,7 @@ describe Hawk::Crypto do
     end
   end
 
-  describe "#normalized_string" do
+  describe ".normalized_string" do
     let(:normalization_method) { "normalized_string" }
 
     shared_examples "an input normalization method" do
