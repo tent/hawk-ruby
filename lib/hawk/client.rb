@@ -1,8 +1,16 @@
 require 'securerandom'
 
 module Hawk
-  class Client
-    def self.build_authorization_header(options)
+  module Client
+    extend self
+
+    def authenticate(authorization_header, options)
+      Hawk::AuthorizationHeader.authenticate(authorization_header, {
+        :credentials_lookup => lambda { |id| options[:credentials][:id] == id ? options[:credentials] : nil }
+      }.merge(options))
+    end
+
+    def build_authorization_header(options)
       Hawk::AuthorizationHeader.build(options)
     end
   end
