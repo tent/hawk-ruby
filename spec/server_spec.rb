@@ -140,6 +140,28 @@ describe Hawk::Server do
             expect(actual.key).to eql(:mac)
           end
         end
+
+        context "when stale timestamp" do
+          context "when too old" do
+            let(:timestamp) { Time.now.to_i - 1001 }
+
+            it "returns error object" do
+              actual = described_class.authenticate(authorization_header, input, &credentials_lookup)
+              expect(actual).to be_a(Hawk::Server::AuthenticationFailure)
+              expect(actual.key).to eql(:ts)
+            end
+          end
+
+          context "when too far in the future" do
+            let(:timestamp) { Time.now.to_i + 1001 }
+
+            it "returns error object" do
+              actual = described_class.authenticate(authorization_header, input, &credentials_lookup)
+              expect(actual).to be_a(Hawk::Server::AuthenticationFailure)
+              expect(actual.key).to eql(:ts)
+            end
+          end
+        end
       end
     end
 

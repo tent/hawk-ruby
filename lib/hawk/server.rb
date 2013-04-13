@@ -7,6 +7,13 @@ module Hawk
     def authenticate(authorization_header, options, &credentials_lookup)
       parts = parse_authorization_header(authorization_header)
 
+      now = Time.now.to_i
+
+      if (now - parts[:ts].to_i > 1000) || (parts[:ts].to_i - now > 1000)
+        # Stale timestamp
+        return AuthenticationFailure.new(:ts)
+      end
+
       unless credentials_lookup && (credentials = credentials_lookup.call(parts[:id]))
         return AuthenticationFailure.new(:id)
       end
