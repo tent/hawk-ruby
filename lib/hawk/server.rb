@@ -54,5 +54,9 @@ module Hawk
         memo
       end
     end
+
+    def build_authorization_header(options)
+      Hawk::AuthorizationHeader.build(options, [:hash, :ext, :mac])
+    end
   end
 end
