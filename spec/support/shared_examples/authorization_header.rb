@@ -90,3 +90,90 @@ shared_examples "an authorization header builder" do
   end
 end
 
+shared_examples "an authorization header authenticator" do
+  context "with valid authorization header" do
+    it "returns credentials object" do
+      expect(described_class.authenticate(authorization_header, input)).to eql(credentials)
+    end
+
+    context "when hash present" do
+      let(:payload) { 'something to write about' }
+
+      it "returns credentials object" do
+        expect(described_class.authenticate(authorization_header, input)).to eql(credentials)
+      end
+    end
+
+    context "when ext present" do
+      let(:ext) { 'some random ext' }
+
+      it "returns credentials object" do
+        expect(described_class.authenticate(authorization_header, input)).to eql(credentials)
+      end
+    end
+  end
+
+  context "with invalid authorization header" do
+    context "when invalid mac" do
+      let(:expected_mac) { 'foobar' }
+
+      it "returns error object" do
+        actual = described_class.authenticate(authorization_header, input)
+        expect(actual).to be_a(Hawk::AuthorizationHeader::AuthenticationFailure)
+        expect(actual.key).to eql(:mac)
+        expect(actual.message).to_not eql(nil)
+      end
+    end
+
+    context "when invalid hash" do
+      let(:expected_hash) { 'foobar' }
+      let(:payload) { 'baz' }
+
+      it "returns error object" do
+        actual = described_class.authenticate(authorization_header, input)
+        expect(actual).to be_a(Hawk::AuthorizationHeader::AuthenticationFailure)
+        expect(actual.key).to eql(:hash)
+        expect(actual.message).to_not eql(nil)
+      end
+    end
+
+    context "when invalid ext" do
+      before do
+        client_input[:ext] = 'something else'
+      end
+
+      it "returns error object" do
+        actual = described_class.authenticate(authorization_header, input)
+        expect(actual).to be_a(Hawk::AuthorizationHeader::AuthenticationFailure)
+        expect(actual.key).to eql(:mac)
+        expect(actual.message).to_not eql(nil)
+      end
+    end
+
+    context "when invalid content type" do
+      let(:payload) { 'baz' }
+      before do
+        client_input[:content_type] = 'application/foo'
+      end
+
+      it "returns error object" do
+        actual = described_class.authenticate(authorization_header, input)
+        expect(actual).to be_a(Hawk::AuthorizationHeader::AuthenticationFailure)
+        expect(actual.key).to eql(:mac)
+        expect(actual.message).to_not eql(nil)
+      end
+    end
+
+    context "when nonce missing" do
+      let(:nonce) { nil }
+
+      it "returns error object" do
+        actual = described_class.authenticate(authorization_header, input)
+        expect(actual).to be_a(Hawk::AuthorizationHeader::AuthenticationFailure)
+        expect(actual.key).to eql(:nonce)
+        expect(actual.message).to_not eql(nil)
+      end
+    end
+  end
+end
+

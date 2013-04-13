@@ -66,166 +66,71 @@ describe Hawk::Server do
       "Hawk #{parts.join(', ')}"
     end
 
-    shared_examples "an authorization header authenticator" do
-      context "with valid authorization header" do
-        it "returns credentials object" do
-          expect(described_class.authenticate(authorization_header, input)).to eql(credentials)
+    shared_examples "an authorization request header authenticator" do
+      it_behaves_like "an authorization header authenticator"
+
+      context "when unidentified id" do
+        let(:credentials_lookup) do
+          lambda { |id| }
         end
 
-        context "when hash present" do
-          let(:payload) { 'something to write about' }
+        it "returns error object" do
+          actual = described_class.authenticate(authorization_header, input)
+          expect(actual).to be_a(Hawk::AuthorizationHeader::AuthenticationFailure)
+          expect(actual.key).to eql(:id)
+          expect(actual.message).to_not eql(nil)
+        end
+      end
 
-          it "returns credentials object" do
-            expect(described_class.authenticate(authorization_header, input)).to eql(credentials)
+      context "when stale timestamp" do
+        context "when too old" do
+          let(:timestamp) { Time.now.to_i - 1001 }
+
+          it "returns error object" do
+            actual = described_class.authenticate(authorization_header, input)
+            expect(actual).to be_a(Hawk::AuthorizationHeader::AuthenticationFailure)
+            expect(actual.key).to eql(:ts)
+            expect(actual.message).to_not eql(nil)
           end
         end
 
-        context "when ext present" do
-          let(:ext) { 'some random ext' }
+        context "when too far in the future" do
+          let(:timestamp) { Time.now.to_i + 1001 }
 
-          it "returns credentials object" do
-            expect(described_class.authenticate(authorization_header, input)).to eql(credentials)
+          it "returns error object" do
+            actual = described_class.authenticate(authorization_header, input)
+            expect(actual).to be_a(Hawk::AuthorizationHeader::AuthenticationFailure)
+            expect(actual.key).to eql(:ts)
+            expect(actual.message).to_not eql(nil)
           end
         end
       end
 
-      context "with invalid authorization header" do
-        context "when unidentified id" do
-          let(:credentials_lookup) do
-            lambda { |id| }
-          end
-
-          it "returns error object" do
-            actual = described_class.authenticate(authorization_header, input)
-            expect(actual).to be_a(Hawk::Server::AuthenticationFailure)
-            expect(actual.key).to eql(:id)
-            expect(actual.message).to_not eql(nil)
+      context "when replay" do
+        let(:nonce_lookup) do
+          lambda do |nonce|
+            true
           end
         end
 
-        context "when invalid mac" do
-          let(:expected_mac) { 'foobar' }
+        it "returns error object" do
+          actual = described_class.authenticate(authorization_header, input)
+          expect(actual).to be_a(Hawk::AuthorizationHeader::AuthenticationFailure)
+          expect(actual.key).to eql(:nonce)
+          expect(actual.message).to_not eql(nil)
+        end
+      end
 
-          it "returns error object" do
-            actual = described_class.authenticate(authorization_header, input)
-            expect(actual).to be_a(Hawk::Server::AuthenticationFailure)
-            expect(actual.key).to eql(:mac)
-            expect(actual.message).to_not eql(nil)
-          end
+      context "when no credentials_lookup given" do
+        before do
+          input.delete(:credentials_lookup)
         end
 
-        context "when invalid hash" do
-          let(:expected_hash) { 'foobar' }
-          let(:payload) { 'baz' }
-
-          it "returns error object" do
-            actual = described_class.authenticate(authorization_header, input)
-            expect(actual).to be_a(Hawk::Server::AuthenticationFailure)
-            expect(actual.key).to eql(:hash)
-            expect(actual.message).to_not eql(nil)
-          end
-        end
-
-        context "when invalid ext" do
-          before do
-            client_input[:ext] = 'something else'
-          end
-
-          it "returns error object" do
-            actual = described_class.authenticate(authorization_header, input)
-            expect(actual).to be_a(Hawk::Server::AuthenticationFailure)
-            expect(actual.key).to eql(:mac)
-            expect(actual.message).to_not eql(nil)
-          end
-        end
-
-        context "when invalid content type" do
-          let(:payload) { 'baz' }
-          before do
-            client_input[:content_type] = 'application/foo'
-          end
-
-          it "returns error object" do
-            actual = described_class.authenticate(authorization_header, input)
-            expect(actual).to be_a(Hawk::Server::AuthenticationFailure)
-            expect(actual.key).to eql(:mac)
-            expect(actual.message).to_not eql(nil)
-          end
-        end
-
-        context "when stale timestamp" do
-          context "when too old" do
-            let(:timestamp) { Time.now.to_i - 1001 }
-
-            it "returns error object" do
-              actual = described_class.authenticate(authorization_header, input)
-              expect(actual).to be_a(Hawk::Server::AuthenticationFailure)
-              expect(actual.key).to eql(:ts)
-              expect(actual.message).to_not eql(nil)
-            end
-          end
-
-          context "when too far in the future" do
-            let(:timestamp) { Time.now.to_i + 1001 }
-
-            it "returns error object" do
-              actual = described_class.authenticate(authorization_header, input)
-              expect(actual).to be_a(Hawk::Server::AuthenticationFailure)
-              expect(actual.key).to eql(:ts)
-              expect(actual.message).to_not eql(nil)
-            end
-          end
-        end
-
-        context "when replay" do
-          let(:nonce_lookup) do
-            lambda do |nonce|
-              true
-            end
-          end
-
-          it "returns error object" do
-            actual = described_class.authenticate(authorization_header, input)
-            expect(actual).to be_a(Hawk::Server::AuthenticationFailure)
-            expect(actual.key).to eql(:nonce)
-            expect(actual.message).to_not eql(nil)
-          end
-        end
-
-        context "when no credentials_lookup given" do
-          before do
-            input.delete(:credentials_lookup)
-          end
-
-          it "returns error object" do
-            actual = described_class.authenticate(authorization_header, input)
-            expect(actual).to be_a(Hawk::Server::AuthenticationFailure)
-            expect(actual.key).to eql(:id)
-            expect(actual.message).to_not eql(nil)
-          end
-        end
-
-        context "when nonce missing" do
-          let(:nonce) { nil }
-
-          it "returns error object" do
-            actual = described_class.authenticate(authorization_header, input)
-            expect(actual).to be_a(Hawk::Server::AuthenticationFailure)
-            expect(actual.key).to eql(:nonce)
-            expect(actual.message).to_not eql(nil)
-          end
-        end
-
-        context "when no credentials_lookup given" do
-          before do
-            input.delete(:credentials_lookup)
-          end
-
-          it "returns error object" do
-            actual = described_class.authenticate(authorization_header, input)
-            expect(actual).to be_a(Hawk::Server::AuthenticationFailure)
-            expect(actual.key).to eql(:id)
-          end
+        it "returns error object" do
+          actual = described_class.authenticate(authorization_header, input)
+          expect(actual).to be_a(Hawk::AuthorizationHeader::AuthenticationFailure)
+          expect(actual.key).to eql(:id)
+          expect(actual.message).to_not eql(nil)
         end
       end
     end
@@ -233,13 +138,13 @@ describe Hawk::Server do
     context "when using sha256" do
       let(:algorithm) { "sha256" }
 
-      it_behaves_like "an authorization header authenticator"
+      it_behaves_like "an authorization request header authenticator"
     end
 
     context "when using sha1" do
       let(:algorithm) { "sha1" }
 
-      it_behaves_like "an authorization header authenticator"
+      it_behaves_like "an authorization request header authenticator"
     end
   end
 
