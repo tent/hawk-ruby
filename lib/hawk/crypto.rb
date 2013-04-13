@@ -47,6 +47,16 @@ module Hawk
       ).chomp
     end
 
+    def ts_mac(options)
+      Base64.encode64(
+        OpenSSL::HMAC.digest(
+          openssl_digest(options[:credentials][:algorithm]).new,
+          options[:credentials][:key],
+          "hawk.1.ts\n#{options[:ts]}\n"
+        )
+      ).chomp
+    end
+
     def bewit(options)
       options[:ts] = Time.now.to_i + options[:ttl].to_i
 

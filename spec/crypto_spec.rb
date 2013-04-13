@@ -113,6 +113,19 @@ describe Hawk::Crypto do
     end
   end
 
+  describe ".ts_mac" do
+    let(:input) do
+      {
+        :credentials => credentials,
+        :ts => 1365741469
+      }
+    end
+
+    it "returns valid timestamp mac" do
+      expect(described_class.ts_mac(input)).to eql("h/Ff6XI1euObD78ZNflapvLKXGuaw1RiLI4Q6Q5sAbM=")
+    end
+  end
+
   describe "#normalized_string" do
     let(:normalization_method) { "normalized_string" }
 
