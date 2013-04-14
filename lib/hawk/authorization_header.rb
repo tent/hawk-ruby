@@ -76,22 +76,22 @@ module Hawk
           :nonce => options[:nonce],
         )
       else
+        unless options[:credentials_lookup].respond_to?(:call) && (credentials = options[:credentials_lookup].call(parts[:id]))
+          return AuthenticationFailure.new(:id, "Unidentified id", :credentials => credentials)
+        end
+
         if (now - parts[:ts].to_i > 1000) || (parts[:ts].to_i - now > 1000)
           # Stale timestamp
-          return AuthenticationFailure.new(:ts, "Stale ts", :credentials => options[:credentials])
+          return AuthenticationFailure.new(:ts, "Stale ts", :credentials => credentials)
         end
 
         unless parts[:nonce]
-          return AuthenticationFailure.new(:nonce, "Missing nonce", :credentials => options[:credentials])
+          return AuthenticationFailure.new(:nonce, "Missing nonce", :credentials => credentials)
         end
 
         if options[:nonce_lookup].respond_to?(:call) && options[:nonce_lookup].call(parts[:nonce])
           # Replay
-          return AuthenticationFailure.new(:nonce, "Invalid nonce", :credentials => options[:credentials])
-        end
-
-        unless options[:credentials_lookup].respond_to?(:call) && (credentials = options[:credentials_lookup].call(parts[:id]))
-          return AuthenticationFailure.new(:id, "Unidentified id", :credentials => options[:credentials])
+          return AuthenticationFailure.new(:nonce, "Invalid nonce", :credentials => credentials)
         end
       end
 
@@ -102,12 +102,12 @@ module Hawk
         :ext => parts[:ext]
       ))
       unless expected_mac == parts[:mac]
-        return AuthenticationFailure.new(:mac, "Invalid mac", :credentials => options[:credentials])
+        return AuthenticationFailure.new(:mac, "Invalid mac", :credentials => credentials)
       end
 
       expected_hash = parts[:hash] ? Crypto.hash(options.merge(:credentials => credentials)) : nil
       if expected_hash && expected_hash != parts[:hash]
-        return AuthenticationFailure.new(:hash, "Invalid hash", :credentials => options[:credentials])
+        return AuthenticationFailure.new(:hash, "Invalid hash", :credentials => credentials)
       end
 
       credentials
