@@ -104,6 +104,31 @@ describe Hawk::Server do
             expect(actual.message).to_not eql(nil)
           end
         end
+
+        context "when invalid content type" do
+          let(:payload) { 'baz' }
+          before do
+            client_input[:content_type] = 'application/foo'
+          end
+
+          it "returns error object" do
+            actual = described_class.authenticate(authorization_header, input)
+            expect(actual).to be_a(Hawk::AuthorizationHeader::AuthenticationFailure)
+            expect(actual.key).to eql(:mac)
+            expect(actual.message).to_not eql(nil)
+          end
+        end
+
+        context "when nonce missing" do
+          let(:nonce) { nil }
+
+          it "returns error object" do
+            actual = described_class.authenticate(authorization_header, input)
+            expect(actual).to be_a(Hawk::AuthorizationHeader::AuthenticationFailure)
+            expect(actual.key).to eql(:nonce)
+            expect(actual.message).to_not eql(nil)
+          end
+        end
       end
 
       context "when replay" do

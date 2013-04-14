@@ -26,6 +26,7 @@ describe Hawk::Client do
         :port => 80,
         :content_type => 'text/plain',
         :credentials => credentials,
+        :ts => timestamp,
         :nonce => nonce
       }
       _input[:payload] = payload if payload
@@ -33,11 +34,7 @@ describe Hawk::Client do
     end
 
     let(:client_input) do
-      _input = input.merge(
-        :credentials => credentials,
-        :ts => timestamp,
-        :nonce => nonce,
-      )
+      _input = input
       _input[:ext] = ext if ext
       _input
     end
@@ -47,9 +44,6 @@ describe Hawk::Client do
 
     let(:authorization_header) do
       parts = []
-      parts << %(id="#{credentials[:id]}")
-      parts << %(ts="#{timestamp}")
-      parts << %(nonce="#{nonce}") if nonce
       parts << %(hash="#{expected_hash}") if expected_hash
       parts << %(mac="#{expected_mac}")
       parts << %(ext="#{ext}") if ext

@@ -69,22 +69,30 @@ module Hawk
 
       now = Time.now.to_i
 
-      if (now - parts[:ts].to_i > 1000) || (parts[:ts].to_i - now > 1000)
-        # Stale timestamp
-        return AuthenticationFailure.new(:ts, "Stale ts", :credentials => options[:credentials])
-      end
+      if options[:server_response]
+        credentials = options[:credentials]
+        parts.merge!(
+          :ts => options[:ts],
+          :nonce => options[:nonce],
+        )
+      else
+        if (now - parts[:ts].to_i > 1000) || (parts[:ts].to_i - now > 1000)
+          # Stale timestamp
+          return AuthenticationFailure.new(:ts, "Stale ts", :credentials => options[:credentials])
+        end
 
-      unless parts[:nonce]
-        return AuthenticationFailure.new(:nonce, "Missing nonce", :credentials => options[:credentials])
-      end
+        unless parts[:nonce]
+          return AuthenticationFailure.new(:nonce, "Missing nonce", :credentials => options[:credentials])
+        end
 
-      if options[:nonce_lookup].respond_to?(:call) && options[:nonce_lookup].call(parts[:nonce])
-        # Replay
-        return AuthenticationFailure.new(:nonce, "Invalid nonce", :credentials => options[:credentials])
-      end
+        if options[:nonce_lookup].respond_to?(:call) && options[:nonce_lookup].call(parts[:nonce])
+          # Replay
+          return AuthenticationFailure.new(:nonce, "Invalid nonce", :credentials => options[:credentials])
+        end
 
-      unless options[:credentials_lookup].respond_to?(:call) && (credentials = options[:credentials_lookup].call(parts[:id]))
-        return AuthenticationFailure.new(:id, "Unidentified id", :credentials => options[:credentials])
+        unless options[:credentials_lookup].respond_to?(:call) && (credentials = options[:credentials_lookup].call(parts[:id]))
+          return AuthenticationFailure.new(:id, "Unidentified id", :credentials => options[:credentials])
+        end
       end
 
       expected_mac = Crypto.mac(options.merge(
