@@ -138,4 +138,43 @@ describe Hawk::Client do
     end
   end
 
+  describe ".calculate_time_offset" do
+    let(:algorithm) { 'sha256' }
+    let(:timestamp) { 1365741469 }
+    let(:header) do
+      %(Hawk ts="#{timestamp}", tsm="#{timestamp_mac}", error="Some Error Message")
+    end
+
+    before do
+      Time.stubs(:now).returns(Time.at(timestamp + offset))
+    end
+
+    context "with valid timestamp mac" do
+      let(:timestamp_mac) { Hawk::Crypto.ts_mac(:ts => timestamp, :credentials => credentials) }
+
+      context "with positive offset" do
+        let(:offset) { -2030 }
+        it "returns time offset in seconds" do
+          expect(described_class.calculate_time_offset(header, :credentials => credentials)).to eql(offset * -1)
+        end
+      end
+
+      context "with negative offset" do
+        let(:offset) { 12345 }
+        it "returns time offset in seconds" do
+          expect(described_class.calculate_time_offset(header, :credentials => credentials)).to eql(offset * -1)
+        end
+      end
+    end
+
+    context "with invalid timestamp mac" do
+      let(:timestamp_mac) { "fooabr" }
+      let(:offset) { 1432 }
+
+      it "returns nil" do
+        expect(described_class.calculate_time_offset(header, :credentials => credentials)).to be_nil
+      end
+    end
+  end
+
 end
