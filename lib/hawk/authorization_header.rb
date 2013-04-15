@@ -19,8 +19,12 @@ module Hawk
 
       def header
         timestamp = Time.now.to_i
-        timestamp_mac = Crypto.ts_mac(:ts => timestamp, :credentials => @options[:credentials])
-        %(Hawk ts="#{timestamp}", tsm="#{timestamp_mac}", error="#{message}")
+        if @options[:credentials]
+          timestamp_mac = Crypto.ts_mac(:ts => timestamp, :credentials => @options[:credentials])
+          %(Hawk ts="#{timestamp}", tsm="#{timestamp_mac}", error="#{message}")
+        else
+          %(Hawk error="#{message}")
+        end
       end
     end
 
