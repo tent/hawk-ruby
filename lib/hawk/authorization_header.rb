@@ -13,7 +13,7 @@ module Hawk
 
     class AuthenticationFailure
       attr_reader :key, :message
-      def initialize(key, message, options)
+      def initialize(key, message, options = {})
         @key, @message, @options = key, message, options
       end
 
@@ -81,7 +81,7 @@ module Hawk
         )
       else
         unless options[:credentials_lookup].respond_to?(:call) && (credentials = options[:credentials_lookup].call(parts[:id]))
-          return AuthenticationFailure.new(:id, "Unidentified id", :credentials => credentials)
+          return AuthenticationFailure.new(:id, "Unidentified id")
         end
 
         if (now - parts[:ts].to_i > 1000) || (parts[:ts].to_i - now > 1000)
@@ -90,12 +90,12 @@ module Hawk
         end
 
         unless parts[:nonce]
-          return AuthenticationFailure.new(:nonce, "Missing nonce", :credentials => credentials)
+          return AuthenticationFailure.new(:nonce, "Missing nonce")
         end
 
         if options[:nonce_lookup].respond_to?(:call) && options[:nonce_lookup].call(parts[:nonce])
           # Replay
-          return AuthenticationFailure.new(:nonce, "Invalid nonce", :credentials => credentials)
+          return AuthenticationFailure.new(:nonce, "Invalid nonce")
         end
       end
 
@@ -106,12 +106,12 @@ module Hawk
         :ext => parts[:ext]
       ))
       unless expected_mac == parts[:mac]
-        return AuthenticationFailure.new(:mac, "Invalid mac", :credentials => credentials)
+        return AuthenticationFailure.new(:mac, "Invalid mac")
       end
 
       expected_hash = parts[:hash] ? Crypto.hash(options.merge(:credentials => credentials)) : nil
       if expected_hash && expected_hash != parts[:hash]
-        return AuthenticationFailure.new(:hash, "Invalid hash", :credentials => credentials)
+        return AuthenticationFailure.new(:hash, "Invalid hash")
       end
 
       credentials
