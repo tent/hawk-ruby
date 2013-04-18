@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Hawk::AuthorizationHeader::AuthenticationFailure do
+describe Hawk::AuthenticationFailure do
   let(:algorithm) { "sha256" }
   let(:credentials) do
     {

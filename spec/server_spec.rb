@@ -76,7 +76,7 @@ describe Hawk::Server do
 
         it "returns error object" do
           actual = described_class.authenticate(authorization_header, input)
-          expect(actual).to be_a(Hawk::AuthorizationHeader::AuthenticationFailure)
+          expect(actual).to be_a(Hawk::AuthenticationFailure)
           expect(actual.key).to eql(:id)
           expect(actual.message).to_not eql(nil)
         end
@@ -88,7 +88,7 @@ describe Hawk::Server do
 
           it "returns error object" do
             actual = described_class.authenticate(authorization_header, input)
-            expect(actual).to be_a(Hawk::AuthorizationHeader::AuthenticationFailure)
+            expect(actual).to be_a(Hawk::AuthenticationFailure)
             expect(actual.key).to eql(:ts)
             expect(actual.message).to_not eql(nil)
           end
@@ -99,7 +99,7 @@ describe Hawk::Server do
 
           it "returns error object" do
             actual = described_class.authenticate(authorization_header, input)
-            expect(actual).to be_a(Hawk::AuthorizationHeader::AuthenticationFailure)
+            expect(actual).to be_a(Hawk::AuthenticationFailure)
             expect(actual.key).to eql(:ts)
             expect(actual.message).to_not eql(nil)
           end
@@ -113,7 +113,7 @@ describe Hawk::Server do
 
           it "returns error object" do
             actual = described_class.authenticate(authorization_header, input)
-            expect(actual).to be_a(Hawk::AuthorizationHeader::AuthenticationFailure)
+            expect(actual).to be_a(Hawk::AuthenticationFailure)
             expect(actual.key).to eql(:mac)
             expect(actual.message).to_not eql(nil)
           end
@@ -124,7 +124,7 @@ describe Hawk::Server do
 
           it "returns error object" do
             actual = described_class.authenticate(authorization_header, input)
-            expect(actual).to be_a(Hawk::AuthorizationHeader::AuthenticationFailure)
+            expect(actual).to be_a(Hawk::AuthenticationFailure)
             expect(actual.key).to eql(:nonce)
             expect(actual.message).to_not eql(nil)
           end
@@ -140,7 +140,7 @@ describe Hawk::Server do
 
         it "returns error object" do
           actual = described_class.authenticate(authorization_header, input)
-          expect(actual).to be_a(Hawk::AuthorizationHeader::AuthenticationFailure)
+          expect(actual).to be_a(Hawk::AuthenticationFailure)
           expect(actual.key).to eql(:nonce)
           expect(actual.message).to_not eql(nil)
         end
@@ -153,7 +153,7 @@ describe Hawk::Server do
 
         it "returns error object" do
           actual = described_class.authenticate(authorization_header, input)
-          expect(actual).to be_a(Hawk::AuthorizationHeader::AuthenticationFailure)
+          expect(actual).to be_a(Hawk::AuthenticationFailure)
           expect(actual.key).to eql(:id)
           expect(actual.message).to_not eql(nil)
         end

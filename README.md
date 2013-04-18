@@ -88,7 +88,7 @@ Hawk id="123456", ts="1365898519", nonce="Ygvqdz", hash="LjRmtkSKTW0ObTUyZ7N+vjC
 >   :credentials_lookup => lambda { |id| id == credentials[:id] ? credentials : nil },
 >   :nonce_lookup => lambda { |nonce| }
 > )
-#<Hawk::AuthorizationHeader::AuthenticationFailure:0x007f95cba33168 @key=:nonce, @message="Missing nonce", @options={:credentials=>{:id=>"123456", :key=>"2983d45yun89q", :algorithm=>"sha256"}}>
+#<Hawk::AuthenticationFailure:0x007f95cba33168 @key=:nonce, @message="Missing nonce", @options={:credentials=>{:id=>"123456", :key=>"2983d45yun89q", :algorithm=>"sha256"}}>
 > res.header
 Hawk ts="1365901388", tsm="6mdH5DT66UeWlkBC9x2QD7Upt0eYnud9dB7y7xKoEoU=", error="Missing nonce"
 
