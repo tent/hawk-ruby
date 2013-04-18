@@ -21,7 +21,7 @@ module Hawk
       expected_bewit = Crypto.bewit(
         :credentials => credentials,
         :host => options[:host],
-        :path => options[:path],
+        :path => remove_bewit_param_from_path(options[:path]),
         :port => options[:port],
         :method => options[:method],
         :ts => timestamp,
@@ -37,6 +37,18 @@ module Hawk
 
     def build_authorization_header(options)
       Hawk::AuthorizationHeader.build(options, [:hash, :ext, :mac])
+    end
+
+    private
+
+    def remove_bewit_param_from_path(path)
+      path, query = path.split('?')
+      return path unless query
+      query, fragment = query.split('#')
+      query = query.split('&').reject { |i| i =~ /\Abewit=/ }.join('&')
+      path = path + "?#{query}"
+      path << "#{fragment}" if fragment
+      path
     end
   end
 end

@@ -234,7 +234,7 @@ describe Hawk::Server do
       {
         :credentials_lookup => credentials_lookup,
         :method => 'GET',
-        :path => '/resource/4?a=1&b=2',
+        :path => "/resource/4?a=1&bewit=#{bewit}&b=2",
         :host => 'example.com',
         :port => 80,
       }
