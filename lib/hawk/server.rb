@@ -46,7 +46,7 @@ module Hawk
       return path unless query
       query, fragment = query.split('#')
       query = query.split('&').reject { |i| i =~ /\Abewit=/ }.join('&')
-      path = path + "?#{query}"
+      path << "?#{query}" if query != ''
       path << "#{fragment}" if fragment
       path
     end
