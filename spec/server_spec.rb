@@ -219,4 +219,72 @@ describe Hawk::Server do
     end
   end
 
+  describe ".authenticate_bewit" do
+    let(:credentials_lookup) do
+      lambda { |id|
+        if id == credentials[:id]
+          credentials
+        end
+      }
+    end
+
+    let(:algorithm) { "sha256" }
+
+    let(:input) do
+      {
+        :credentials_lookup => credentials_lookup,
+        :method => 'GET',
+        :path => '/resource/4?a=1&b=2',
+        :host => 'example.com',
+        :port => 80,
+      }
+    end
+
+    let(:bewit) { "MTIzNDU2XDQ1MTkzMTE0NThcYkkwanFlS1prUHE0V1hRMmkxK0NrQ2lOanZEc3BSVkNGajlmbElqMXphWT1cc29tZS1hcHAtZGF0YQ" }
+
+    let(:now) { 1365711458 }
+    before do
+      Time.stubs(:now).returns(Time.at(now))
+    end
+
+    context "when valid" do
+      it "returns credentials" do
+        expect(described_class.authenticate_bewit(bewit, input)).to eql(credentials)
+      end
+    end
+
+    context "when invalid format" do
+      let(:bewit) { "invalid-bewit" }
+
+      it "returns error object" do
+        actual = described_class.authenticate_bewit(bewit, input)
+        expect(actual).to be_a(Hawk::AuthenticationFailure)
+        expect(actual.key).to eql(:id)
+        expect(actual.message).to_not eql(nil)
+      end
+    end
+
+    context "when invalid ext" do
+      let(:bewit) { "MTIzNDU2XDQ1MTkzMTE0NThcVTN4dVF5TEVXUGNOa3Q4Vm5oRy9BSDg4VERQZXlKT2JKeGVNb0tkZWZUQT1caW52YWxpZCBleHQ" }
+
+      it "returns error object" do
+        actual = described_class.authenticate_bewit(bewit, input)
+        expect(actual).to be_a(Hawk::AuthenticationFailure)
+        expect(actual.key).to eql(:bewit)
+        expect(actual.message).to_not eql(nil)
+      end
+    end
+
+    context "when stale timestamp" do
+      let(:now) { 4519311459 }
+
+      it "returns error object" do
+        actual = described_class.authenticate_bewit(bewit, input)
+        expect(actual).to be_a(Hawk::AuthenticationFailure)
+        expect(actual.key).to eql(:ts)
+        expect(actual.message).to_not eql(nil)
+      end
+    end
+  end
+
 end

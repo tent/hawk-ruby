@@ -58,7 +58,7 @@ module Hawk
     end
 
     def bewit(options)
-      options[:ts] = Time.now.to_i + options[:ttl].to_i
+      options[:ts] ||= Time.now.to_i + options[:ttl].to_i
 
       _mac = mac(options.merge(:type => 'bewit'))
 
