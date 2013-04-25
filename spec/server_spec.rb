@@ -46,7 +46,7 @@ describe Hawk::Server do
       _input = input.merge(
         :credentials => credentials,
         :ts => timestamp,
-        :nonce => nonce,
+        :nonce => nonce
       )
       _input[:ext] = ext if ext
       _input

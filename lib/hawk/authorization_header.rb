@@ -60,7 +60,7 @@ module Hawk
         credentials = options[:credentials]
         parts.merge!(
           :ts => options[:ts],
-          :nonce => options[:nonce],
+          :nonce => options[:nonce]
         )
       else
         unless options[:credentials_lookup].respond_to?(:call) && (credentials = options[:credentials_lookup].call(parts[:id]))

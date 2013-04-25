@@ -1,6 +1,23 @@
 require 'base64'
 require 'openssl'
 
+##
+# Ruby 1.8.7 compatibility
+unless Base64.respond_to?(:strict_encode64)
+  Base64.class_eval do
+    def strict_encode64(bin)
+      [bin].pack("m0")
+    end
+  end
+end
+unless Base64.respond_to?(:urlsafe_encode64)
+  Base64.class_eval do
+    def urlsafe_encode64(bin)
+      strict_encode64(bin).tr("+/", "-_").gsub("\n", '')
+    end
+  end
+end
+
 module Hawk
   module Crypto
     extend self
@@ -13,7 +30,7 @@ module Hawk
       parts << options[:payload].to_s
       parts << nil # trailing newline
 
-      Digest.const_get(options[:credentials][:algorithm].upcase).base64digest(parts.join("\n"))
+      Base64.encode64(OpenSSL::Digest.const_get(options[:credentials][:algorithm].upcase).digest(parts.join("\n"))).chomp
     end
 
     def normalized_string(options)
