@@ -152,6 +152,47 @@ describe Hawk::Crypto do
 
     it_behaves_like "an input normalization method"
 
+    context "with app" do
+      let(:input) do
+        {
+          :ts => 1365701514,
+          :nonce => '5b4e',
+          :method => 'GET',
+          :path => '/path/to/foo?bar=baz',
+          :host => 'example.com',
+          :port => 8080,
+          :app => 'some app id'
+        }
+      end
+
+      let(:expected_output) do
+        %(hawk.1.header\n#{input[:ts]}\n#{input[:nonce]}\n#{input[:method]}\n#{input[:path]}\n#{input[:host]}\n#{input[:port]}\n\n\n#{input[:app]}\n\n)
+      end
+
+      it_behaves_like "an input normalization method"
+    end
+
+    context "with app and dig" do
+      let(:input) do
+        {
+          :ts => 1365701514,
+          :nonce => '5b4e',
+          :method => 'GET',
+          :path => '/path/to/foo?bar=baz',
+          :host => 'example.com',
+          :port => 8080,
+          :app => 'some app id',
+          :dig => 'some dig'
+        }
+      end
+
+      let(:expected_output) do
+        %(hawk.1.header\n#{input[:ts]}\n#{input[:nonce]}\n#{input[:method]}\n#{input[:path]}\n#{input[:host]}\n#{input[:port]}\n\n\n#{input[:app]}\n#{input[:dig]}\n)
+      end
+
+      it_behaves_like "an input normalization method"
+    end
+
     context "with ext" do
       let(:input) do
         {

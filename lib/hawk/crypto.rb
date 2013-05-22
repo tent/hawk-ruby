@@ -45,6 +45,12 @@ module Hawk
       parts << options[:port]
       parts << options[:hash]
       parts << options[:ext]
+
+      if options[:app]
+        parts << options[:app]
+        parts << options[:dig]
+      end
+
       parts << nil # trailing newline
 
       parts.join("\n")
