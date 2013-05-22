@@ -5,7 +5,7 @@ module Hawk
     extend self
 
     def authenticate(authorization_header, options)
-      Hawk::AuthorizationHeader.authenticate(authorization_header, { :server_response => true }.merge(options))
+      Hawk::AuthorizationHeader.authenticate(authorization_header, { :server_response => true, :type => 'response' }.merge(options))
     end
 
     def build_authorization_header(options)

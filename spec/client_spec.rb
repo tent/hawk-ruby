@@ -35,6 +35,7 @@ describe Hawk::Client do
 
     let(:client_input) do
       _input = input
+      _input[:type] = 'response'
       _input[:ext] = ext if ext
       _input
     end

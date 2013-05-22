@@ -91,8 +91,8 @@ module Hawk
         :ts => parts[:ts],
         :nonce => parts[:nonce],
         :ext => parts[:ext],
-        :app => parts[:app],
-        :dig => parts[:dig]
+        :app => options[:app] || parts[:app],
+        :dig => options[:dig] || parts[:dig]
       ))
       unless expected_mac == parts[:mac]
         return AuthenticationFailure.new(:mac, "Invalid mac")
