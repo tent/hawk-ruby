@@ -7,6 +7,8 @@ module Hawk
     SUPPORTED_ALGORITHMS = ['sha256', 'sha1'].freeze
     HEADER_PARTS = [:id, :ts, :nonce, :hash, :ext, :mac].freeze
 
+    DEFAULT_TIMESTAMP_SKEW = 60.freeze # ±60 seconds
+
     MissingOptionError = Class.new(StandardError)
     InvalidCredentialsError = Class.new(StandardError)
     InvalidAlgorithmError = Class.new(StandardError)
@@ -56,6 +58,8 @@ module Hawk
 
       now = Time.now.to_i
 
+      options[:timestamp_skew] ||= DEFAULT_TIMESTAMP_SKEW
+
       if options[:server_response]
         credentials = options[:credentials]
         parts.merge!(
@@ -67,7 +71,7 @@ module Hawk
           return AuthenticationFailure.new(:id, "Unidentified id")
         end
 
-        if (now - parts[:ts].to_i > 1000) || (parts[:ts].to_i - now > 1000)
+        if (now - parts[:ts].to_i > options[:timestamp_skew]) || (parts[:ts].to_i - now > options[:timestamp_skew])
           # Stale timestamp
           return AuthenticationFailure.new(:ts, "Stale ts", :credentials => credentials)
         end

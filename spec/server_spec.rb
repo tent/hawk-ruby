@@ -28,6 +28,8 @@ describe Hawk::Server do
     let(:timestamp) { Time.now.to_i }
     let(:nonce) { 'Ygvqdz' }
 
+    let(:timestamp_skew) { Hawk::AuthorizationHeader::DEFAULT_TIMESTAMP_SKEW }
+
     let(:input) do
       _input = {
         :method => 'POST',
@@ -84,7 +86,7 @@ describe Hawk::Server do
 
       context "when stale timestamp" do
         context "when too old" do
-          let(:timestamp) { Time.now.to_i - 1001 }
+          let(:timestamp) { Time.now.to_i - timestamp_skew - 1 }
 
           it "returns error object" do
             actual = described_class.authenticate(authorization_header, input)
@@ -95,7 +97,7 @@ describe Hawk::Server do
         end
 
         context "when too far in the future" do
-          let(:timestamp) { Time.now.to_i + 1001 }
+          let(:timestamp) { Time.now.to_i + timestamp_skew + 1 }
 
           it "returns error object" do
             actual = described_class.authenticate(authorization_header, input)
