@@ -54,7 +54,10 @@ module Hawk
     end
 
     def authenticate(header, options)
+      options = options.dup
+
       parts = parse(header)
+      options.delete(:payload) unless parts[:hash]
 
       now = Time.now.to_i
 
