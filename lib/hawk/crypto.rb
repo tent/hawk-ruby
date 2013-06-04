@@ -34,6 +34,11 @@ module Hawk
     end
 
     def normalized_string(options)
+      options = options.dup
+      if !options[:hash] && options.has_key?(:payload)
+        options[:hash] = hash(options)
+      end
+
       parts = []
 
       parts << "hawk.1.#{options[:type] || 'header'}"
@@ -57,10 +62,6 @@ module Hawk
     end
 
     def mac(options)
-      if !options[:hash] && options.has_key?(:payload)
-        options[:hash] = hash(options)
-      end
-
       Base64.encode64(
         OpenSSL::HMAC.digest(
           openssl_digest(options[:credentials][:algorithm]).new,
