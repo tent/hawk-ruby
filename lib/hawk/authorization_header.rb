@@ -43,7 +43,7 @@ module Hawk
         :nonce => options[:nonce],
         :mac => mac
       }
-      parts[:hash] = hash if options.has_key?(:payload)
+      parts[:hash] = hash if options.has_key?(:payload) && !options[:payload].nil?
       parts[:ext] = options[:ext] if options.has_key?(:ext)
 
       "Hawk " << (only || HEADER_PARTS).inject([]) { |memo, key|

@@ -35,7 +35,7 @@ module Hawk
 
     def normalized_string(options)
       options = options.dup
-      if !options[:hash] && options.has_key?(:payload)
+      if !options[:hash] && options.has_key?(:payload) && !options[:payload].nil?
         options[:hash] = hash(options)
       end
 
