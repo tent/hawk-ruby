@@ -89,16 +89,17 @@ module Hawk
         end
       end
 
-      expected_mac = Crypto.mac(options.merge(
+      mac_opts = options.merge(
         :credentials => credentials,
         :ts => parts[:ts],
         :nonce => parts[:nonce],
         :ext => parts[:ext],
         :app => options[:app] || parts[:app],
         :dig => options[:dig] || parts[:dig]
-      ))
+      )
+      expected_mac = Crypto.mac(mac_opts)
       unless expected_mac == parts[:mac]
-        return AuthenticationFailure.new(:mac, "Invalid mac")
+        return AuthenticationFailure.new(:mac, "Invalid mac. #{Crypto.normalized_string(mac_opts)}")
       end
 
       expected_hash = parts[:hash] ? Crypto.hash(options.merge(:credentials => credentials)) : nil
