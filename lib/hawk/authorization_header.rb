@@ -2,7 +2,7 @@ module Hawk
   module AuthorizationHeader
     extend self
 
-    REQUIRED_OPTIONS = [:method, :path, :host, :port].freeze
+    REQUIRED_OPTIONS = [:method, :request_uri, :host, :port].freeze
     REQUIRED_CREDENTIAL_MEMBERS = [:id, :key, :algorithm].freeze
     SUPPORTED_ALGORITHMS = ['sha256', 'sha1'].freeze
     HEADER_PARTS = [:id, :ts, :nonce, :hash, :ext, :mac].freeze

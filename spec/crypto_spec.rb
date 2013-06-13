@@ -26,7 +26,7 @@ describe Hawk::Crypto do
         :ts => 1353809207,
         :nonce => 'Ygvqdz',
         :method => 'POST',
-        :path => '/somewhere/over/the/rainbow',
+        :request_uri => '/somewhere/over/the/rainbow',
         :host => 'example.net',
         :port => 80,
         :payload => 'something to write about',
@@ -62,7 +62,7 @@ describe Hawk::Crypto do
         {
           :credentials => credentials,
           :method => 'GET',
-          :path => '/resource/4?a=1&b=2',
+          :request_uri => '/resource/4?a=1&b=2',
           :host => 'example.com',
           :port => 80,
           :ext => 'some-app-data',
@@ -91,7 +91,7 @@ describe Hawk::Crypto do
         :ts => 1353809207,
         :nonce => 'Ygvqdz',
         :method => 'POST',
-        :path => '/somewhere/over/the/rainbow',
+        :request_uri => '/somewhere/over/the/rainbow',
         :host => 'example.net',
         :port => 80,
         :payload => 'something to write about',
@@ -140,14 +140,14 @@ describe Hawk::Crypto do
         :ts => 1365701514,
         :nonce => '5b4e',
         :method => 'GET',
-        :path => "/path/to/foo?bar=baz",
+        :request_uri => "/path/to/foo?bar=baz",
         :host => 'example.com',
         :port => 8080
       }
     end
 
     let(:expected_output) do
-      %(hawk.1.header\n#{input[:ts]}\n#{input[:nonce]}\n#{input[:method]}\n#{input[:path]}\n#{input[:host]}\n#{input[:port]}\n\n\n)
+      %(hawk.1.header\n#{input[:ts]}\n#{input[:nonce]}\n#{input[:method]}\n#{input[:request_uri]}\n#{input[:host]}\n#{input[:port]}\n\n\n)
     end
 
     it_behaves_like "an input normalization method"
@@ -158,7 +158,7 @@ describe Hawk::Crypto do
           :ts => 1365701514,
           :nonce => '5b4e',
           :method => 'GET',
-          :path => '/path/to/foo?bar=baz',
+          :request_uri => '/path/to/foo?bar=baz',
           :host => 'example.com',
           :port => 8080,
           :app => 'some app id'
@@ -166,7 +166,7 @@ describe Hawk::Crypto do
       end
 
       let(:expected_output) do
-        %(hawk.1.header\n#{input[:ts]}\n#{input[:nonce]}\n#{input[:method]}\n#{input[:path]}\n#{input[:host]}\n#{input[:port]}\n\n\n#{input[:app]}\n\n)
+        %(hawk.1.header\n#{input[:ts]}\n#{input[:nonce]}\n#{input[:method]}\n#{input[:request_uri]}\n#{input[:host]}\n#{input[:port]}\n\n\n#{input[:app]}\n\n)
       end
 
       it_behaves_like "an input normalization method"
@@ -178,7 +178,7 @@ describe Hawk::Crypto do
           :ts => 1365701514,
           :nonce => '5b4e',
           :method => 'GET',
-          :path => '/path/to/foo?bar=baz',
+          :request_uri => '/path/to/foo?bar=baz',
           :host => 'example.com',
           :port => 8080,
           :app => 'some app id',
@@ -187,7 +187,7 @@ describe Hawk::Crypto do
       end
 
       let(:expected_output) do
-        %(hawk.1.header\n#{input[:ts]}\n#{input[:nonce]}\n#{input[:method]}\n#{input[:path]}\n#{input[:host]}\n#{input[:port]}\n\n\n#{input[:app]}\n#{input[:dig]}\n)
+        %(hawk.1.header\n#{input[:ts]}\n#{input[:nonce]}\n#{input[:method]}\n#{input[:request_uri]}\n#{input[:host]}\n#{input[:port]}\n\n\n#{input[:app]}\n#{input[:dig]}\n)
       end
 
       it_behaves_like "an input normalization method"
@@ -199,7 +199,7 @@ describe Hawk::Crypto do
           :ts => 1365701514,
           :nonce => '5b4e',
           :method => 'GET',
-          :path => '/path/to/foo?bar=baz',
+          :request_uri => '/path/to/foo?bar=baz',
           :host => 'example.com',
           :port => 8080,
           :ext => 'this is some app data'
@@ -207,7 +207,7 @@ describe Hawk::Crypto do
       end
 
       let(:expected_output) do
-        %(hawk.1.header\n#{input[:ts]}\n#{input[:nonce]}\n#{input[:method]}\n#{input[:path]}\n#{input[:host]}\n#{input[:port]}\n\n#{input[:ext]}\n)
+        %(hawk.1.header\n#{input[:ts]}\n#{input[:nonce]}\n#{input[:method]}\n#{input[:request_uri]}\n#{input[:host]}\n#{input[:port]}\n\n#{input[:ext]}\n)
       end
 
       it_behaves_like "an input normalization method"
@@ -219,7 +219,7 @@ describe Hawk::Crypto do
           :ts => 1365701514,
           :nonce => '5b4e',
           :method => 'GET',
-          :path => '/path/to/foo?bar=baz',
+          :request_uri => '/path/to/foo?bar=baz',
           :host => 'example.com',
           :port => 8080,
           :hash => 'U4MKKSmiVxk37JCCrAVIjV/OhB3y+NdwoCr6RShbVkE=',
@@ -228,7 +228,7 @@ describe Hawk::Crypto do
       end
 
       let(:expected_output) do
-        %(hawk.1.header\n#{input[:ts]}\n#{input[:nonce]}\n#{input[:method]}\n#{input[:path]}\n#{input[:host]}\n#{input[:port]}\n#{input[:hash]}\n#{input[:ext]}\n)
+        %(hawk.1.header\n#{input[:ts]}\n#{input[:nonce]}\n#{input[:method]}\n#{input[:request_uri]}\n#{input[:host]}\n#{input[:port]}\n#{input[:hash]}\n#{input[:ext]}\n)
       end
 
       it_behaves_like "an input normalization method"

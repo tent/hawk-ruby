@@ -33,7 +33,7 @@ describe Hawk::Server do
     let(:input) do
       _input = {
         :method => 'POST',
-        :path => '/somewhere/over/the/rainbow',
+        :request_uri => '/somewhere/over/the/rainbow',
         :host => 'example.net',
         :port => 80,
         :content_type => 'text/plain',
@@ -186,7 +186,7 @@ describe Hawk::Server do
         :credentials => credentials,
         :ts => timestamp,
         :method => 'POST',
-        :path => '/somewhere/over/the/rainbow',
+        :request_uri => '/somewhere/over/the/rainbow',
         :host => 'example.net',
         :port => 80,
         :payload => 'something to write about',
@@ -236,7 +236,7 @@ describe Hawk::Server do
       {
         :credentials_lookup => credentials_lookup,
         :method => 'GET',
-        :path => "/resource/4?a=1&bewit=#{bewit}&b=2",
+        :request_uri => "/resource/4?a=1&bewit=#{bewit}&b=2",
         :host => 'example.com',
         :port => 80,
       }

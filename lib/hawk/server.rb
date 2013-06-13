@@ -21,7 +21,7 @@ module Hawk
       expected_bewit = Crypto.bewit(
         :credentials => credentials,
         :host => options[:host],
-        :path => remove_bewit_param_from_path(options[:path]),
+        :request_uri => remove_bewit_param_from_path(options[:request_uri]),
         :port => options[:port],
         :method => options[:method],
         :ts => timestamp,

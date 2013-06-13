@@ -35,7 +35,7 @@ shared_examples "an authorization header builder" do
     context '', &returns_valid_authorization_header
   end
 
-  %w( method path host port ).each do |missing_option|
+  %w( method request_uri host port ).each do |missing_option|
     context "when missing #{missing_option} option" do
       before do
         input.delete(missing_option.to_sym)

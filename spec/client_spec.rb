@@ -21,7 +21,7 @@ describe Hawk::Client do
     let(:input) do
       _input = {
         :method => 'POST',
-        :path => '/somewhere/over/the/rainbow',
+        :request_uri => '/somewhere/over/the/rainbow',
         :host => 'example.net',
         :port => 80,
         :content_type => 'text/plain',
@@ -82,7 +82,7 @@ describe Hawk::Client do
         :credentials => credentials,
         :ts => timestamp,
         :method => 'POST',
-        :path => '/somewhere/over/the/rainbow',
+        :request_uri => '/somewhere/over/the/rainbow',
         :host => 'example.net',
         :port => 80,
         :payload => 'something to write about',

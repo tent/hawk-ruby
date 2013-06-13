@@ -45,7 +45,7 @@ module Hawk
       parts << options[:ts]
       parts << options[:nonce]
       parts << options[:method].to_s.upcase
-      parts << options[:path]
+      parts << options[:request_uri]
       parts << options[:host]
       parts << options[:port]
       parts << options[:hash]
