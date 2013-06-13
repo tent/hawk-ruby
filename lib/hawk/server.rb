@@ -29,7 +29,13 @@ module Hawk
       )
 
       unless expected_bewit == bewit
-        return AuthenticationFailure.new(:bewit, "Invalid signature")
+        if options[:request_uri].to_s =~ /\Ahttp/
+          return authenticate_bewit(bewit, options.merge(
+            :request_uri => options[:request_uri].sub(%r{\Ahttps?://[^/]+}, '')
+          ))
+        else
+          return AuthenticationFailure.new(:bewit, "Invalid signature")
+        end
       end
 
       credentials

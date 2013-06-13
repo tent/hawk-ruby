@@ -222,6 +222,47 @@ describe Hawk::Server do
   end
 
   describe ".authenticate_bewit" do
+    shared_examples "authenticate_bewit" do
+      context "when valid" do
+        it "returns credentials" do
+          expect(described_class.authenticate_bewit(bewit, input)).to eql(credentials)
+        end
+      end
+
+      context "when invalid format" do
+        let(:bewit) { "invalid-bewit" }
+
+        it "returns error object" do
+          actual = described_class.authenticate_bewit(bewit, input)
+          expect(actual).to be_a(Hawk::AuthenticationFailure)
+          expect(actual.key).to eql(:id)
+          expect(actual.message).to_not eql(nil)
+        end
+      end
+
+      context "when invalid ext" do
+        let(:bewit) { "MTIzNDU2XDQ1MTkzMTE0NThcVTN4dVF5TEVXUGNOa3Q4Vm5oRy9BSDg4VERQZXlKT2JKeGVNb0tkZWZUQT1caW52YWxpZCBleHQ" }
+
+        it "returns error object" do
+          actual = described_class.authenticate_bewit(bewit, input)
+          expect(actual).to be_a(Hawk::AuthenticationFailure)
+          expect(actual.key).to eql(:bewit)
+          expect(actual.message).to_not eql(nil)
+        end
+      end
+
+      context "when stale timestamp" do
+        let(:now) { 4519311459 }
+
+        it "returns error object" do
+          actual = described_class.authenticate_bewit(bewit, input)
+          expect(actual).to be_a(Hawk::AuthenticationFailure)
+          expect(actual.key).to eql(:ts)
+          expect(actual.message).to_not eql(nil)
+        end
+      end
+    end
+
     let(:credentials_lookup) do
       lambda { |id|
         if id == credentials[:id]
@@ -249,43 +290,16 @@ describe Hawk::Server do
       Time.stubs(:now).returns(Time.at(now))
     end
 
-    context "when valid" do
-      it "returns credentials" do
-        expect(described_class.authenticate_bewit(bewit, input)).to eql(credentials)
-      end
+    context "when request_uri is path" do
+      it_behaves_like "authenticate_bewit"
     end
 
-    context "when invalid format" do
-      let(:bewit) { "invalid-bewit" }
-
-      it "returns error object" do
-        actual = described_class.authenticate_bewit(bewit, input)
-        expect(actual).to be_a(Hawk::AuthenticationFailure)
-        expect(actual.key).to eql(:id)
-        expect(actual.message).to_not eql(nil)
+    context "when request_uri is full url" do
+      before do
+        input[:request_uri] = "http://example.com/resource/4?a=1&bewit=#{bewit}&b=2"
       end
-    end
 
-    context "when invalid ext" do
-      let(:bewit) { "MTIzNDU2XDQ1MTkzMTE0NThcVTN4dVF5TEVXUGNOa3Q4Vm5oRy9BSDg4VERQZXlKT2JKeGVNb0tkZWZUQT1caW52YWxpZCBleHQ" }
-
-      it "returns error object" do
-        actual = described_class.authenticate_bewit(bewit, input)
-        expect(actual).to be_a(Hawk::AuthenticationFailure)
-        expect(actual.key).to eql(:bewit)
-        expect(actual.message).to_not eql(nil)
-      end
-    end
-
-    context "when stale timestamp" do
-      let(:now) { 4519311459 }
-
-      it "returns error object" do
-        actual = described_class.authenticate_bewit(bewit, input)
-        expect(actual).to be_a(Hawk::AuthenticationFailure)
-        expect(actual.key).to eql(:ts)
-        expect(actual.message).to_not eql(nil)
-      end
+      it_behaves_like "authenticate_bewit"
     end
   end
 
