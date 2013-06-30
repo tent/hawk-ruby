@@ -26,7 +26,7 @@ module Hawk
         :method => options[:method],
         :ts => timestamp,
         :ext => ext
-      )
+      ).to_s
 
       unless expected_bewit == bewit
         if options[:request_uri].to_s =~ /\Ahttp/

@@ -139,6 +139,38 @@ module Hawk
       end
     end
 
+    class Bewit < Base
+      def initialize(id, key, options, algorithm = 'sha256')
+        options[:ts] ||= Time.now.to_i + options[:ttl].to_i
+        @id, @key, @options, @algorithm = id, key, options, algorithm
+      end
+
+      def mac
+        @mac ||= Crypto::Mac.new(@key, @options.merge(:type => 'bewit'), @algorithm)
+      end
+
+      def normalized_string
+        @normalized_string ||= begin
+          parts = []
+
+          parts << @id
+          parts << @options[:ts]
+          parts << mac.to_s
+          parts << @options[:ext]
+
+          parts.join("\\")
+        end
+      end
+
+      def encode64
+        @encoded ||= Base64.urlsafe_encode64(normalized_string).chomp.sub(/=+\Z/, '')
+      end
+
+      def to_s(options = {})
+        encode64
+      end
+    end
+
     def hash(options)
       Hash.new(options[:content_type], options[:payload], options[:credentials][:algorithm])
     end
@@ -152,18 +184,12 @@ module Hawk
     end
 
     def bewit(options)
-      options[:ts] ||= Time.now.to_i + options[:ttl].to_i
-
-      _mac = mac(options.merge(:type => 'bewit'))
-
-      parts = []
-
-      parts << options[:credentials][:id]
-      parts << options[:ts]
-      parts << _mac
-      parts << options[:ext]
-
-      Base64.urlsafe_encode64(parts.join("\\")).chomp.sub(/=+\Z/, '')
+      Bewit.new(
+        options[:credentials][:id],
+        options[:credentials][:key],
+        options,
+        options[:credentials][:algorithm]
+      )
     end
   end
 end
