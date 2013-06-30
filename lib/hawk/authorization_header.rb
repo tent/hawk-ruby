@@ -34,7 +34,7 @@ module Hawk
         raise InvalidAlgorithmError.new("#{credentials[:algorithm].inspect} is not a supported algorithm! Use one of the following: #{SUPPORTED_ALGORITHMS.join(', ')}")
       end
 
-      hash = Crypto.hash(options)
+      hash = Crypto.hash(options).to_s
       mac = Crypto.mac(options)
 
       parts = {
@@ -102,7 +102,7 @@ module Hawk
         return AuthenticationFailure.new(:mac, "Invalid mac. #{expected_mac.normalized_string}")
       end
 
-      expected_hash = parts[:hash] ? Crypto.hash(options.merge(:credentials => credentials)) : nil
+      expected_hash = parts[:hash] ? Crypto.hash(options.merge(:credentials => credentials)).to_s : nil
       if expected_hash && expected_hash != parts[:hash]
         return AuthenticationFailure.new(:hash, "Invalid hash")
       end

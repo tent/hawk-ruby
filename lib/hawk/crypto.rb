@@ -22,16 +22,7 @@ module Hawk
   module Crypto
     extend self
 
-    class Mac
-      attr_reader :normalized_string, :algorithm
-      def initialize(normalized_string, key, algorithm = 'sha256')
-        @normalized_string, @key, @algorithm = normalized_string, key, algorithm
-      end
-
-      def digest
-        @digest ||= OpenSSL::HMAC.digest(openssl_digest(@algorithm).new, @key, @normalized_string)
-      end
-
+    class Base
       def to_s(options = {})
         if options[:raw]
           digest
@@ -64,15 +55,42 @@ module Hawk
       end
     end
 
+    class Mac < Base
+      attr_reader :normalized_string, :algorithm
+      def initialize(normalized_string, key, algorithm = 'sha256')
+        @normalized_string, @key, @algorithm = normalized_string, key, algorithm
+      end
+
+      def digest
+        @digest ||= OpenSSL::HMAC.digest(openssl_digest(@algorithm).new, @key, @normalized_string)
+      end
+    end
+
+    class Hash < Base
+      def initialize(content_type, payload, algorithm)
+        @content_type, @payload, @algorithm = content_type, payload, algorithm
+      end
+
+      def normalized_string
+        @normalized_string ||= begin
+          parts = []
+
+          parts << "hawk.1.payload"
+          parts << @content_type
+          parts << @payload.to_s
+          parts << nil # trailing newline
+
+          parts.join("\n")
+        end
+      end
+
+      def digest
+        @digest ||= openssl_digest(@algorithm).digest(normalized_string)
+      end
+    end
+
     def hash(options)
-      parts = []
-
-      parts << "hawk.1.payload"
-      parts << options[:content_type]
-      parts << options[:payload].to_s
-      parts << nil # trailing newline
-
-      Base64.encode64(OpenSSL::Digest.const_get(options[:credentials][:algorithm].upcase).digest(parts.join("\n"))).chomp
+      Hash.new(options[:content_type], options[:payload], options[:credentials][:algorithm])
     end
 
     def normalized_string(options)
