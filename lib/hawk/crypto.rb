@@ -140,9 +140,19 @@ module Hawk
     end
 
     class Bewit < Base
+      def self.decode(bewit)
+        padding = '=' * ((4 - bewit.size) % 4)
+        id, timestamp, mac, ext = Base64.decode64(bewit + padding).split('\\')
+
+        new(id, nil, { :mac => mac, :ext => ext, :ts => timestamp }, nil)
+      end
+
+      attr_reader :id, :ts, :ext
       def initialize(id, key, options, algorithm = 'sha256')
-        options[:ts] ||= Time.now.to_i + options[:ttl].to_i
-        @id, @key, @options, @algorithm = id, key, options, algorithm
+        @ts = options[:ts] ||= Time.now.to_i + options[:ttl].to_i
+        @ext = options[:ext]
+        @id, @key, @options, @algorithm = id, key, options.dup, algorithm
+        @mac = options.delete(:mac) if options[:mac]
       end
 
       def mac
@@ -154,9 +164,9 @@ module Hawk
           parts = []
 
           parts << @id
-          parts << @options[:ts]
+          parts << @ts
           parts << mac.to_s
-          parts << @options[:ext]
+          parts << @ext
 
           parts.join("\\")
         end
@@ -168,6 +178,15 @@ module Hawk
 
       def to_s(options = {})
         encode64
+      end
+
+      def ==(other)
+        if self.class === other
+          mac == other.mac
+        else
+          # assume base64 encoded bewit
+          self == self.class.decode(other)
+        end
       end
     end
 

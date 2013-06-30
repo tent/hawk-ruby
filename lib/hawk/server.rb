@@ -6,15 +6,14 @@ module Hawk
       Hawk::AuthorizationHeader.authenticate(authorization_header, options)
     end
 
-    def authenticate_bewit(bewit, options)
-      padding = '=' * ((4 - bewit.size) % 4)
-      id, timestamp, mac, ext = Base64.decode64(bewit + padding).split('\\')
+    def authenticate_bewit(encoded_bewit, options)
+      bewit = Crypto::Bewit.decode(encoded_bewit)
 
-      unless options[:credentials_lookup].respond_to?(:call) && (credentials = options[:credentials_lookup].call(id))
+      unless options[:credentials_lookup].respond_to?(:call) && (credentials = options[:credentials_lookup].call(bewit.id))
         return AuthenticationFailure.new(:id, "Unidentified id")
       end
 
-      if Time.at(timestamp.to_i) < Time.now
+      if Time.at(bewit.ts.to_i) < Time.now
         return AuthenticationFailure.new(:ts, "Stale timestamp")
       end
 
@@ -24,13 +23,13 @@ module Hawk
         :request_uri => remove_bewit_param_from_path(options[:request_uri]),
         :port => options[:port],
         :method => options[:method],
-        :ts => timestamp,
-        :ext => ext
-      ).to_s
+        :ts => bewit.ts,
+        :ext => bewit.ext
+      )
 
-      unless expected_bewit == bewit
+      unless expected_bewit.eql?(bewit)
         if options[:request_uri].to_s =~ /\Ahttp/
-          return authenticate_bewit(bewit, options.merge(
+          return authenticate_bewit(encoded_bewit, options.merge(
             :request_uri => options[:request_uri].sub(%r{\Ahttps?://[^/]+}, '')
           ))
         else
