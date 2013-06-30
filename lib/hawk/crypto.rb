@@ -37,10 +37,10 @@ module Hawk
 
       def ==(other)
         if self.class === other
-          Crypto.secure_compare(to_s(:raw => true), other.to_s(:raw => true))
+          secure_compare(to_s(:raw => true), other.to_s(:raw => true))
         else
           # assume base64 encoded mac
-          Crypto.secure_compare(to_s(:raw => true), Base64.decode64(other))
+          secure_compare(to_s(:raw => true), Base64.decode64(other))
         end
       end
 
@@ -50,19 +50,55 @@ module Hawk
 
       private
 
+      def secure_compare(a, b)
+        return false if a.empty? || b.empty? || a.bytesize != b.bytesize
+        b_bytes = b.unpack "C#{b.bytesize}"
+
+        res = 0
+        a.each_byte { |byte| res |= byte ^ b_bytes.shift }
+        res == 0
+      end
+
       def openssl_digest(algorithm)
         Crypto.openssl_digest(algorithm)
       end
     end
 
     class Mac < Base
-      attr_reader :normalized_string, :algorithm
-      def initialize(normalized_string, key, algorithm = 'sha256')
-        @normalized_string, @key, @algorithm = normalized_string, key, algorithm
+      def initialize(key, options, algorithm = 'sha256')
+        @key, @options, @algorithm = key, options, algorithm
+      end
+
+      def normalized_string
+        options = @options.dup
+        if !options[:hash] && options.has_key?(:payload) && !options[:payload].nil?
+          options[:hash] = Crypto.hash(options)
+        end
+
+        parts = []
+
+        parts << "hawk.1.#{options[:type] || 'header'}"
+        parts << options[:ts]
+        parts << options[:nonce]
+        parts << options[:method].to_s.upcase
+        parts << options[:request_uri]
+        parts << options[:host]
+        parts << options[:port]
+        parts << options[:hash]
+        parts << options[:ext]
+
+        if options[:app]
+          parts << options[:app]
+          parts << options[:dig]
+        end
+
+        parts << nil # trailing newline
+
+        parts.join("\n")
       end
 
       def digest
-        @digest ||= OpenSSL::HMAC.digest(openssl_digest(@algorithm).new, @key, @normalized_string)
+        @digest ||= OpenSSL::HMAC.digest(openssl_digest(@algorithm).new, @key, normalized_string)
       end
     end
 
@@ -93,53 +129,8 @@ module Hawk
       Hash.new(options[:content_type], options[:payload], options[:credentials][:algorithm])
     end
 
-    def normalized_string(options)
-      options = options.dup
-      if !options[:hash] && options.has_key?(:payload) && !options[:payload].nil?
-        options[:hash] = hash(options)
-      end
-
-      parts = []
-
-      parts << "hawk.1.#{options[:type] || 'header'}"
-      parts << options[:ts]
-      parts << options[:nonce]
-      parts << options[:method].to_s.upcase
-      parts << options[:request_uri]
-      parts << options[:host]
-      parts << options[:port]
-      parts << options[:hash]
-      parts << options[:ext]
-
-      if options[:app]
-        parts << options[:app]
-        parts << options[:dig]
-      end
-
-      parts << nil # trailing newline
-
-      parts.join("\n")
-    end
-
     def mac(options)
-      Mac.new(normalized_string(options), options[:credentials][:key], options[:credentials][:algorithm])
-    end
-
-    def encode64(m)
-      Base64.encode64(m).chomp
-    end
-
-    def decode64(string)
-      Base64.decode64(string)
-    end
-
-    def secure_compare(a, b)
-      return false if a.empty? || b.empty? || a.bytesize != b.bytesize
-      b_bytes = b.unpack "C#{b.bytesize}"
-
-      res = 0
-      a.each_byte { |byte| res |= byte ^ b_bytes.shift }
-      res == 0
+      Mac.new(options[:credentials][:key], options, options[:credentials][:algorithm])
     end
 
     def ts_mac(options)

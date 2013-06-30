@@ -125,13 +125,15 @@ describe Hawk::Crypto do
       expect(described_class.ts_mac(input)).to eql("h/Ff6XI1euObD78ZNflapvLKXGuaw1RiLI4Q6Q5sAbM=")
     end
   end
+end
 
+describe Hawk::Crypto::Mac do
   describe ".normalized_string" do
     let(:normalization_method) { "normalized_string" }
 
     shared_examples "an input normalization method" do
       it "returns a valid normalized string" do
-        expect(described_class.send(normalization_method, input)).to eql(expected_output)
+        expect(described_class.new(nil, input, nil).send(normalization_method)).to eql(expected_output)
       end
     end
 
