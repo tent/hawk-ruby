@@ -40,7 +40,7 @@ describe Hawk::Client do
       _input
     end
 
-    let(:expected_mac) { Hawk::Crypto.mac(client_input) }
+    let(:expected_mac) { Hawk::Crypto.mac(client_input).to_s }
     let(:expected_hash) { client_input[:payload] ? Hawk::Crypto.hash(client_input) : nil }
 
     let(:authorization_header) do
@@ -74,7 +74,7 @@ describe Hawk::Client do
       Time.stubs(:now).returns(now)
     end
 
-    let(:expected_mac) { Hawk::Crypto.mac(input) }
+    let(:expected_mac) { Hawk::Crypto.mac(input).to_s }
     let(:expected_hash) { input[:payload] ? Hawk::Crypto.hash(input) : nil }
 
     let(:input) do

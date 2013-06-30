@@ -54,7 +54,7 @@ describe Hawk::Server do
       _input
     end
 
-    let(:expected_mac) { Hawk::Crypto.mac(client_input) }
+    let(:expected_mac) { Hawk::Crypto.mac(client_input).to_s }
     let(:expected_hash) { client_input[:payload] ? Hawk::Crypto.hash(client_input) : nil }
 
     let(:authorization_header) do
@@ -176,7 +176,7 @@ describe Hawk::Server do
   end
 
   describe ".build_authorization_header" do
-    let(:expected_mac) { Hawk::Crypto.mac(input) }
+    let(:expected_mac) { Hawk::Crypto.mac(input).to_s }
     let(:expected_hash) { input[:payload] ? Hawk::Crypto.hash(input) : nil }
     let(:timestamp) { Time.now.to_i }
     let(:nonce) { 'Ygvqdz' }

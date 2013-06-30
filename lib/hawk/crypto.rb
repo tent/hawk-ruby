@@ -22,6 +22,48 @@ module Hawk
   module Crypto
     extend self
 
+    class Mac
+      attr_reader :normalized_string, :algorithm
+      def initialize(normalized_string, key, algorithm = 'sha256')
+        @normalized_string, @key, @algorithm = normalized_string, key, algorithm
+      end
+
+      def digest
+        @digest ||= OpenSSL::HMAC.digest(openssl_digest(@algorithm).new, @key, @normalized_string)
+      end
+
+      def to_s(options = {})
+        if options[:raw]
+          digest
+        else
+          encode64
+        end
+      end
+
+      def encode64
+        Base64.encode64(digest).chomp
+      end
+
+      def ==(other)
+        if self.class === other
+          Crypto.secure_compare(to_s(:raw => true), other.to_s(:raw => true))
+        else
+          # assume base64 encoded mac
+          Crypto.secure_compare(to_s(:raw => true), Base64.decode64(other))
+        end
+      end
+
+      def eql?(other)
+        self == other
+      end
+
+      private
+
+      def openssl_digest(algorithm)
+        Crypto.openssl_digest(algorithm)
+      end
+    end
+
     def hash(options)
       parts = []
 
@@ -62,13 +104,24 @@ module Hawk
     end
 
     def mac(options)
-      Base64.encode64(
-        OpenSSL::HMAC.digest(
-          openssl_digest(options[:credentials][:algorithm]).new,
-          options[:credentials][:key],
-          normalized_string(options)
-        )
-      ).chomp
+      Mac.new(normalized_string(options), options[:credentials][:key], options[:credentials][:algorithm])
+    end
+
+    def encode64(m)
+      Base64.encode64(m).chomp
+    end
+
+    def decode64(string)
+      Base64.decode64(string)
+    end
+
+    def secure_compare(a, b)
+      return false if a.empty? || b.empty? || a.bytesize != b.bytesize
+      b_bytes = b.unpack "C#{b.bytesize}"
+
+      res = 0
+      a.each_byte { |byte| res |= byte ^ b_bytes.shift }
+      res == 0
     end
 
     def ts_mac(options)
