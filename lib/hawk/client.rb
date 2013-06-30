@@ -14,7 +14,7 @@ module Hawk
 
     def calculate_time_offset(authorization_header, options)
       parts = AuthorizationHeader.parse(authorization_header)
-      expected_mac = Crypto.ts_mac(:ts => parts[:ts], :credentials => options[:credentials])
+      expected_mac = Crypto.ts_mac(:ts => parts[:ts], :credentials => options[:credentials]).to_s
       return unless expected_mac == parts[:tsm]
       parts[:ts].to_i - Time.now.to_i
     end

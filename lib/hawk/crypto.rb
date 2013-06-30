@@ -60,7 +60,7 @@ module Hawk
       end
 
       def openssl_digest(algorithm)
-        Crypto.openssl_digest(algorithm)
+        OpenSSL::Digest.const_get(algorithm.upcase)
       end
     end
 
@@ -125,6 +125,20 @@ module Hawk
       end
     end
 
+    class TSMac < Base
+      def initialize(key, ts, algorithm = 'sha256')
+        @key, @ts, @algorithm = key, ts, algorithm
+      end
+
+      def normalized_string
+        @normalized_string ||= "hawk.1.ts\n#{@ts}\n"
+      end
+
+      def digest
+        @digest ||= OpenSSL::HMAC.digest(openssl_digest(@algorithm).new, @key, normalized_string)
+      end
+    end
+
     def hash(options)
       Hash.new(options[:content_type], options[:payload], options[:credentials][:algorithm])
     end
@@ -134,13 +148,7 @@ module Hawk
     end
 
     def ts_mac(options)
-      Base64.encode64(
-        OpenSSL::HMAC.digest(
-          openssl_digest(options[:credentials][:algorithm]).new,
-          options[:credentials][:key],
-          "hawk.1.ts\n#{options[:ts]}\n"
-        )
-      ).chomp
+      TSMac.new(options[:credentials][:key], options[:ts], options[:credentials][:algorithm])
     end
 
     def bewit(options)
@@ -156,10 +164,6 @@ module Hawk
       parts << options[:ext]
 
       Base64.urlsafe_encode64(parts.join("\\")).chomp.sub(/=+\Z/, '')
-    end
-
-    def openssl_digest(algorithm)
-      OpenSSL::Digest.const_get(algorithm.upcase)
     end
   end
 end
