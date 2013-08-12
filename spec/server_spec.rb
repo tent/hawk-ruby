@@ -116,7 +116,7 @@ describe Hawk::Server do
           it "returns error object" do
             actual = described_class.authenticate(authorization_header, input)
             expect(actual).to be_a(Hawk::AuthenticationFailure)
-            expect(actual.key).to eql(:mac)
+            expect(actual.key).to eql(:hash)
             expect(actual.message).to_not eql(nil)
           end
         end
