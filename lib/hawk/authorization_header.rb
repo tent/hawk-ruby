@@ -97,14 +97,15 @@ module Hawk
         :app => options[:app] || parts[:app],
         :dig => options[:dig] || parts[:dig]
       )
+
+      expected_hash = parts[:hash] ? Crypto.hash(options.merge(:credentials => credentials)) : nil
+      if expected_hash && expected_hash.to_s != parts[:hash]
+        return AuthenticationFailure.new(:hash, "Invalid hash. #{expected_hash.normalized_string}")
+      end
+
       expected_mac = Crypto.mac(mac_opts)
       unless expected_mac.eql?(parts[:mac])
         return AuthenticationFailure.new(:mac, "Invalid mac. #{expected_mac.normalized_string}")
-      end
-
-      expected_hash = parts[:hash] ? Crypto.hash(options.merge(:credentials => credentials)).to_s : nil
-      if expected_hash && expected_hash != parts[:hash]
-        return AuthenticationFailure.new(:hash, "Invalid hash")
       end
 
       credentials
