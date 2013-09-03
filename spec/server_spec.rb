@@ -221,6 +221,44 @@ describe Hawk::Server do
     end
   end
 
+  describe ".build_tsm_header" do
+    let(:expected_tsm) { Hawk::Crypto.ts_mac(input).to_s }
+    let(:timestamp) { Time.now.to_i }
+
+    let(:input) do
+      {
+        :credentials => credentials,
+        :ts => timestamp
+      }
+    end
+
+    let(:expected_output_parts) do
+      [
+        %(ts="#{timestamp}"),
+        %(tsm="#{expected_tsm}")
+      ]
+    end
+
+    let(:expected_output) do
+      "Hawk #{expected_output_parts.join(', ')}"
+    end
+
+    context "when using sha256" do
+      let(:algorithm) { "sha256" }
+
+      it "builds tsm header" do
+        actual = described_class.build_tsm_header(input)
+
+        expected_output_parts.each do |expected_part|
+          matcher = Regexp === expected_part ? expected_part : Regexp.new(Regexp.escape(expected_part))
+          expect(actual).to match(matcher)
+        end
+
+        expect(actual).to eql(expected_output)
+      end
+    end
+  end
+
   describe ".authenticate_bewit" do
     shared_examples "authenticate_bewit" do
       context "when valid" do

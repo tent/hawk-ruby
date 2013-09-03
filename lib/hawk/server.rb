@@ -44,6 +44,10 @@ module Hawk
       Hawk::AuthorizationHeader.build(options, [:hash, :ext, :mac])
     end
 
+    def build_tsm_header(options)
+      Hawk::TimestampMacHeader.build(options)
+    end
+
     private
 
     def remove_bewit_param_from_path(path)
