@@ -33,7 +33,7 @@ module Hawk
             :request_uri => options[:request_uri].sub(%r{\Ahttps?://[^/]+}, '')
           ))
         else
-          return AuthenticationFailure.new(:bewit, "Invalid signature")
+          return AuthenticationFailure.new(:bewit, "Invalid signature #{expected_bewit.mac.normalized_string}")
         end
       end
 
