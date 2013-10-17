@@ -105,6 +105,8 @@ module Hawk
     class Hash < Base
       def initialize(content_type, payload, algorithm)
         @content_type, @payload, @algorithm = content_type, payload, algorithm
+
+        @content_type = @content_type.to_s.split(';').first.to_s.sub(/\A\s*/, '').sub(/\s*\Z/, '')
       end
 
       def normalized_string

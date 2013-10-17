@@ -16,7 +16,7 @@ describe Hawk::Crypto do
 
     shared_examples "a payload hashing method" do
       it "returns valid base64 encoded hash of payload" do
-        expect(described_class.send(hashing_method, input)).to eql(expected_output)
+        expect(described_class.send(hashing_method, input).to_s).to eql(expected_output)
       end
     end
 
@@ -45,6 +45,20 @@ describe Hawk::Crypto do
       let(:expected_output) { "LjRmtkSKTW0ObTUyZ7N+vjClKd//KTTdfhF1M4XCuEM=" }
 
       it_behaves_like "a payload hashing method"
+
+      context "when Content-Type has parameters" do
+        let(:input) do
+          {
+            :credentials => credentials,
+            :content_type => ' text/plain ; type="something"',
+            :payload => 'Something to write about',
+          }
+        end
+
+        let(:expected_output) { "RBzsyF5kNxkvMWvOKj90ULW1LHqOwqRo1sAEjjUkPuo=" }
+
+        it_behaves_like "a payload hashing method"
+      end
     end
   end
 
