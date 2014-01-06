@@ -40,7 +40,7 @@ module Hawk
           secure_compare(to_s(:raw => true), other.to_s(:raw => true))
         else
           # assume base64 encoded mac
-          secure_compare(to_s(:raw => true), Base64.decode64(other))
+          secure_compare(to_s(:raw => true), Base64.decode64(other.to_s))
         end
       end
 

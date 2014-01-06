@@ -149,6 +149,16 @@ shared_examples "an authorization header authenticator" do
         expect(actual.message).to_not eql(nil)
       end
     end
+
+    context "when empty header" do
+      let(:authorization_header) { "" }
+
+      it "returns an error object" do
+        actual = described_class.authenticate(authorization_header, input)
+        expect(actual).to be_a(Hawk::AuthenticationFailure)
+        expect(actual.message).to_not eql(nil)
+      end
+    end
   end
 end
 
