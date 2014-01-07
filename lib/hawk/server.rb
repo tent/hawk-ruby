@@ -41,7 +41,8 @@ module Hawk
     end
 
     def build_authorization_header(options)
-      Hawk::AuthorizationHeader.build({ :type => 'response' }.merge(options), [:hash, :ext, :mac])
+      options[:type] = 'response'
+      Hawk::AuthorizationHeader.build(options, [:hash, :ext, :mac])
     end
 
     def build_tsm_header(options)
