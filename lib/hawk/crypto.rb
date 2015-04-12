@@ -89,7 +89,7 @@ module Hawk
 
         if options[:app]
           parts << options[:app]
-          parts << options[:dig]
+          parts << options[:dlg]
         end
 
         parts << nil # trailing newline

@@ -95,7 +95,7 @@ module Hawk
         :nonce => parts[:nonce],
         :ext => parts[:ext],
         :app => options[:app] || parts[:app],
-        :dig => options[:dig] || parts[:dig]
+        :dlg => options[:dlg] || parts[:dlg]
       )
 
       expected_hash = parts[:hash] ? Crypto.hash(options.merge(:credentials => credentials)) : nil

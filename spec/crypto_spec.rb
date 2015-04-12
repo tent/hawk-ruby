@@ -188,7 +188,7 @@ describe Hawk::Crypto::Mac do
       it_behaves_like "an input normalization method"
     end
 
-    context "with app and dig" do
+    context "with app and dlg" do
       let(:input) do
         {
           :ts => 1365701514,
@@ -198,12 +198,12 @@ describe Hawk::Crypto::Mac do
           :host => 'example.com',
           :port => 8080,
           :app => 'some app id',
-          :dig => 'some dig'
+          :dlg => 'some dlg'
         }
       end
 
       let(:expected_output) do
-        %(hawk.1.header\n#{input[:ts]}\n#{input[:nonce]}\n#{input[:method]}\n#{input[:request_uri]}\n#{input[:host]}\n#{input[:port]}\n\n\n#{input[:app]}\n#{input[:dig]}\n)
+        %(hawk.1.header\n#{input[:ts]}\n#{input[:nonce]}\n#{input[:method]}\n#{input[:request_uri]}\n#{input[:host]}\n#{input[:port]}\n\n\n#{input[:app]}\n#{input[:dlg]}\n)
       end
 
       it_behaves_like "an input normalization method"
